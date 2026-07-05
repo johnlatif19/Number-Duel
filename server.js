@@ -577,12 +577,6 @@ io.on('connection', (socket) => {
   });
 });
 
-// Error handling
-app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  res.status(500).json({ error: 'Internal server error' });
-});
-
 // Then add your routes
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -606,6 +600,12 @@ app.get('/enter-room', (req, res) => {
 
 app.get('/game', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'game.html'));
+});
+
+// Error handling
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).json({ error: 'Internal server error' });
 });
 
 // Start server
