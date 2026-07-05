@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>لوحة التحكم - Number Duel</title>
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/tJB1SG8c/Number-Duel.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #1a1a3e);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            padding: 20px;
+        }
+
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-left img {
+            height: 40px;
+        }
+
+        .header-left h1 {
+            color: #fff;
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .header-left h1 span {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .user-info {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+        }
+
+        .user-info strong {
+            color: #fff;
+        }
+
+        .logout-btn {
+            padding: 10px 22px;
+            background: rgba(245, 87, 108, 0.15);
+            border: 1px solid rgba(245, 87, 108, 0.2);
+            border-radius: 12px;
+            color: #f5576c;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .logout-btn:hover {
+            background: rgba(245, 87, 108, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .refresh-btn {
+            padding: 10px 18px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .refresh-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* ===== STATS ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(20px);
+            border-radius: 18px;
+            padding: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .stat-card .label {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+        }
+
+        .stat-card .value {
+            color: #fff;
+            font-size: 36px;
+            font-weight: 700;
+            margin-top: 8px;
+        }
+
+        .stat-card .value .trend {
+            font-size: 14px;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.2);
+            margin-left: 8px;
+        }
+
+        /* ===== ROOMS ===== */
+        .rooms-section {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .rooms-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .rooms-header h2 {
+            color: #fff;
+            font-size: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .rooms-header h2 .count {
+            font-size: 14px;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.04);
+            padding: 2px 12px;
+            border-radius: 30px;
+        }
+
+        .rooms-header .filter-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 6px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 30px;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.8);
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .filter-btn.active {
+            border-color: rgba(102, 126, 234, 0.3);
+            color: #667eea;
+        }
+
+        /* ===== ROOM ITEMS ===== */
+        .room-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 14px;
+            padding: 16px 20px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: all 0.3s ease;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .room-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .room-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .room-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .room-code {
+            color: #fff;
+            font-weight: 700;
+            font-size: 18px;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+        }
+
+        .room-players {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .room-players .player-dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            margin-right: 2px;
+        }
+
+        .room-players .player-dot.online {
+            background: #4caf50;
+        }
+
+        .room-players .player-dot.offline {
+            background: #f44336;
+        }
+
+        .room-players .player-name {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 12px;
+            margin-left: 2px;
+        }
+
+        .room-status {
+            padding: 4px 14px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-waiting {
+            background: rgba(255, 193, 7, 0.12);
+            color: #ffc107;
+        }
+
+        .status-playing {
+            background: rgba(76, 175, 80, 0.12);
+            color: #4caf50;
+        }
+
+        .status-finished {
+            background: rgba(156, 39, 176, 0.12);
+            color: #9c27b0;
+        }
+
+        .room-created {
+            color: rgba(255, 255, 255, 0.15);
+            font-size: 12px;
+        }
+
+        .no-rooms {
+            color: rgba(255, 255, 255, 0.2);
+            text-align: center;
+            padding: 50px 20px;
+            font-size: 16px;
+        }
+
+        .no-rooms .icon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        /* ===== LOADING ===== */
+        .loading-spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 2px solid rgba(255, 255, 255, 0.05);
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: rgba(255, 255, 255, 0.2);
+            text-align: center;
+            padding: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+                padding: 16px 18px;
+            }
+
+            .header-left {
+                justify-content: center;
+            }
+
+            .header-right {
+                justify-content: center;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .stat-card .value {
+                font-size: 28px;
+            }
+
+            .room-item {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+                gap: 8px;
+            }
+
+            .room-info {
+                justify-content: center;
+            }
+
+            .rooms-header {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-left h1 {
+                font-size: 18px;
+            }
+
+            .room-code {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- ===== HEADER ===== -->
+        <div class="header">
+            <div class="header-left">
+                <img src="https://i.postimg.cc/tJB1SG8c/Number-Duel.png" alt="Number Duel" style="height:36px;" />
+                <h1>لوحة <span>التحكم</span></h1>
+            </div>
+            <div class="header-right">
+                <span class="user-info">👋 مرحباً، <strong id="usernameDisplay">المشرف</strong></span>
+                <button class="refresh-btn" id="refreshBtn">🔄 تحديث</button>
+                <button class="logout-btn" id="logoutBtn">🚪 تسجيل خروج</button>
+            </div>
+        </div>
+
+        <!-- ===== STATS ===== -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="label">🏠 الغرف النشطة</div>
+                <div class="value" id="totalRooms">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">👥 اللاعبين</div>
+                <div class="value" id="totalPlayers">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">⚔️ المباريات الجارية</div>
+                <div class="value" id="activeGames">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">📅 تم الإنشاء</div>
+                <div class="value" id="totalRoomsEver">0</div>
+            </div>
+        </div>
+
+        <!-- ===== ROOMS ===== -->
+        <div class="rooms-section">
+            <div class="rooms-header">
+                <h2>
+                    📋 الغرف
+                    <span class="count" id="roomCount">0</span>
+                </h2>
+                <div class="filter-group">
+                    <button class="filter-btn active" data-filter="all">الكل</button>
+                    <button class="filter-btn" data-filter="waiting">⏳ في انتظار</button>
+                    <button class="filter-btn" data-filter="playing">🎮 جارية</button>
+                    <button class="filter-btn" data-filter="finished">✅ منتهية</button>
+                </div>
+            </div>
+
+            <div id="roomsList">
+                <div class="loading-text">
+                    <span class="loading-spinner"></span>
+                    جاري تحميل الغرف...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SCRIPTS ===== -->
+    <script>
+        // ===== CHECK AUTH =====
+        const token = localStorage.getItem('token');
+        const username = localStorage.getItem('username');
+
+        if (!token || !username) {
+            window.location.href = '/login';
+        }
+
+        document.getElementById('usernameDisplay').textContent = username;
+
+        let currentFilter = 'all';
+        let statsData = null;
+
+        // ===== DASHBOARD API =====
+        async function loadDashboard() {
+            try {
+                const response = await fetch('/api/dashboard/stats', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.status === 401 || response.status === 403) {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('username');
+                    window.location.href = '/login';
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error('Failed to load dashboard');
+                }
+
+                const data = await response.json();
+                statsData = data;
+                renderStats(data);
+                renderRooms(data.rooms || [], currentFilter);
+                
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                document.getElementById('roomsList').innerHTML = `
+                    <div class="no-rooms">
+                        <span class="icon">⚠️</span>
+                        حدث خطأ في تحميل البيانات
+                        <br>
+                        <small style="color:rgba(255,255,255,0.1);">${error.message}</small>
+                    </div>
+                `;
+            }
+        }
+
+        // ===== RENDER STATS =====
+        function renderStats(data) {
+            document.getElementById('totalRooms').textContent = data.totalRooms || 0;
+            document.getElementById('totalPlayers').textContent = data.totalPlayers || 0;
+            document.getElementById('activeGames').textContent = data.activeGames || 0;
+            document.getElementById('totalRoomsEver').textContent = (data.rooms || []).length || 0;
+            document.getElementById('roomCount').textContent = (data.rooms || []).length || 0;
+        }
+
+        // ===== RENDER ROOMS =====
+        function renderRooms(rooms, filter) {
+            const list = document.getElementById('roomsList');
+            
+            let filteredRooms = rooms;
+            if (filter !== 'all') {
+                filteredRooms = rooms.filter(r => r.status === filter);
+            }
+
+            if (filteredRooms.length === 0) {
+                list.innerHTML = `
+                    <div class="no-rooms">
+                        <span class="icon">🏠</span>
+                        لا توجد غرف ${filter === 'all' ? '' : filter === 'waiting' ? 'في انتظار' : filter === 'playing' ? 'جارية' : 'منتهية'}
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = filteredRooms.map(room => {
+                const statusMap = {
+                    'waiting': 'في انتظار',
+                    'playing': 'جارية',
+                    'finished': 'منتهية'
+                };
+                
+                const playerNames = room.playerNames || [];
+                const playersList = playerNames.map((name, i) => `
+                    <span class="player-dot online"></span>
+                    <span class="player-name">${name}</span>
+                `).join('');
+
+                const created = new Date(room.createdAt);
+                const timeStr = created.toLocaleString('ar-EG', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    day: '2-digit',
+                    month: '2-digit'
+                });
+
+                return `
+                    <div class="room-item">
+                        <div class="room-info">
+                            <span class="room-code">🏠 ${room.code}</span>
+                            <span class="room-players">
+                                👥 ${room.players || 0} لاعب
+                                ${playersList ? `(${playersList})` : ''}
+                            </span>
+                            <span class="room-created">🕐 ${timeStr}</span>
+                        </div>
+                        <div>
+                            <span class="room-status status-${room.status || 'waiting'}">
+                                ${statusMap[room.status] || room.status || 'في انتظار'}
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ===== FILTERS =====
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentFilter = this.dataset.filter;
+                if (statsData) {
+                    renderRooms(statsData.rooms || [], currentFilter);
+                }
+            });
+        });
+
+        // ===== REFRESH =====
+        document.getElementById('refreshBtn').addEventListener('click', () => {
+            const btn = document.getElementById('refreshBtn');
+            btn.textContent = '⏳ جاري...';
+            btn.disabled = true;
+            
+            loadDashboard().finally(() => {
+                btn.textContent = '🔄 تحديث';
+                btn.disabled = false;
+            });
+        });
+
+        // ===== LOGOUT =====
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('username');
+                window.location.href = '/login';
+            }
+        });
+
+        // ===== LOAD =====
+        loadDashboard();
+
+        // Auto refresh every 60 seconds
+        setInterval(loadDashboard, 60000);
+
+        console.log('%c📊 Number Duel - Dashboard', 'font-size: 20px; font-weight: bold; color: #667eea;');
+        console.log(`%c👤 Logged in as: ${username}`, 'font-size: 14px; color: #888;');
+    </script>
+</body>
+</html>
