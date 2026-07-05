@@ -32,7 +32,11 @@
       "dest": "/public/game.html"
     },
     {
-      "src": "/(.*)",
+      "src": "/api/(.*)",
+      "dest": "server.js"
+    },
+    {
+      "src": "/socket.io/(.*)",
       "dest": "server.js"
     }
   ]
