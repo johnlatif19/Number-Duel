@@ -28,6 +28,10 @@
       "dest": "/public/enter-room.html"
     },
     {
+      "src": "/game",
+      "dest": "/public/game.html"
+    },
+    {
       "src": "/(.*)",
       "dest": "server.js"
     }
