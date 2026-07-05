@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>العب - Number Duel</title>
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/tJB1SG8c/Number-Duel.png">
+    <style>
+        /* ===== RESET & BASE ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(0.98); }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes rotateSlow {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes loadingSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes victoryPop {
+            0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+            50% { transform: scale(1.2) rotate(2deg); opacity: 1; }
+            70% { transform: scale(0.95) rotate(-1deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        @keyframes confettiFall {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        @keyframes typingDot {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-6px); }
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #1a1a3e);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            padding: 20px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* ===== PARTICLES ===== */
+        .particles-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1), transparent);
+            animation: float 20s infinite alternate ease-in-out;
+        }
+
+        .particle:nth-child(1) { width: 300px; height: 300px; top: -100px; left: -100px; animation-duration: 25s; }
+        .particle:nth-child(2) { width: 400px; height: 400px; bottom: -150px; right: -150px; animation-duration: 30s; animation-delay: 2s; }
+        .particle:nth-child(3) { width: 200px; height: 200px; top: 50%; left: 50%; transform: translate(-50%, -50%); animation-duration: 20s; animation-delay: 4s; }
+        .particle:nth-child(4) { width: 150px; height: 150px; top: 20%; right: 10%; animation-duration: 22s; animation-delay: 1s; }
+        .particle:nth-child(5) { width: 250px; height: 250px; bottom: 20%; left: 10%; animation-duration: 28s; animation-delay: 3s; }
+
+        /* ===== ORBITAL RINGS ===== */
+        .orbital-ring {
+            position: fixed;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 50%;
+            animation: rotateSlow 60s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .orbital-ring:nth-child(6) { width: 600px; height: 600px; top: 50%; left: 50%; transform: translate(-50%, -50%); animation-duration: 80s; }
+        .orbital-ring:nth-child(7) { width: 800px; height: 800px; top: 50%; left: 50%; transform: translate(-50%, -50%); animation-duration: 100s; animation-direction: reverse; }
+
+        /* ===== CONTAINER ===== */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1100px;
+            margin: 0 auto;
+            animation: slideUp 0.6s ease-out;
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 20px;
+            min-height: calc(100vh - 40px);
+        }
+
+        /* ===== GLASS CARD ===== */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border-radius: 28px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        /* ===== MAIN GAME AREA ===== */
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* ===== HEADER ===== */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .game-header .left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .game-header .room-code {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.04);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+        }
+
+        .game-header .room-code span {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .game-header .status-badge {
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-badge.waiting {
+            background: rgba(255, 193, 7, 0.15);
+            color: #ffc107;
+        }
+
+        .status-badge.playing {
+            background: rgba(76, 175, 80, 0.15);
+            color: #4caf50;
+        }
+
+        .status-badge.finished {
+            background: rgba(156, 39, 176, 0.15);
+            color: #9c27b0;
+        }
+
+        .game-header .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-icon:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .btn-icon.danger:hover {
+            background: rgba(245, 87, 108, 0.15);
+            color: #f5576c;
+        }
+
+        .btn-icon.success:hover {
+            background: rgba(76, 175, 80, 0.15);
+            color: #4caf50;
+        }
+
+        /* ===== PLAYERS ===== */
+        .players-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .player-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.4s ease;
+            position: relative;
+        }
+
+        .player-card.active-turn {
+            border-color: rgba(102, 126, 234, 0.4);
+            box-shadow: 0 0 30px rgba(102, 126, 234, 0.05);
+        }
+
+        .player-card .player-name {
+            color: #fff;
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .player-card .player-name .badge {
+            font-size: 11px;
+            padding: 2px 10px;
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .player-card .player-name .badge.you {
+            background: rgba(102, 126, 234, 0.15);
+            color: #667eea;
+        }
+
+        .player-card .player-name .badge.opponent {
+            background: rgba(245, 87, 108, 0.15);
+            color: #f5576c;
+        }
+
+        .player-card .player-status {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 13px;
+            margin-top: 6px;
+        }
+
+        .player-card .player-status .dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+
+        .player-card .player-status .dot.online {
+            background: #4caf50;
+        }
+
+        .player-card .player-status .dot.offline {
+            background: #f44336;
+        }
+
+        .player-card .player-status .dot.waiting {
+            background: #ffc107;
+            animation: pulse 1.5s infinite;
+        }
+
+        .turn-indicator {
+            position: absolute;
+            top: -8px;
+            right: 16px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 3px 12px;
+            border-radius: 30px;
+            letter-spacing: 0.5px;
+        }
+
+        /* ===== GUESS AREA ===== */
+        .guess-area {
+            margin-top: 10px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .guess-area .guess-label {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 13px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .guess-area .guess-label .hint-text {
+            color: rgba(255, 255, 255, 0.15);
+            font-size: 12px;
+        }
+
+        .guess-input-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        .guess-input-group input {
+            flex: 1;
+            padding: 14px 18px;
+            border: 2px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.04);
+            color: #fff;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+        }
+
+        .guess-input-group input:focus {
+            outline: none;
+            border-color: rgba(102, 126, 234, 0.4);
+            background: rgba(255, 255, 255, 0.06);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.05);
+        }
+
+        .guess-input-group input:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .guess-input-group input::placeholder {
+            color: rgba(255, 255, 255, 0.15);
+            font-family: 'Segoe UI', sans-serif;
+            font-weight: 400;
+        }
+
+        .guess-input-group .guess-btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .guess-input-group .guess-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .guess-input-group .guess-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* ===== FEEDBACK ===== */
+        .feedback-area {
+            margin-top: 16px;
+            padding: 16px 20px;
+            border-radius: 16px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: all 0.3s ease;
+        }
+
+        .feedback-area .feedback-text {
+            font-size: 28px;
+            font-weight: 800;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .feedback-area .feedback-text.higher {
+            color: #4caf50;
+        }
+
+        .feedback-area .feedback-text.lower {
+            color: #ff9800;
+        }
+
+        .feedback-area .feedback-text.correct {
+            color: #4caf50;
+            animation: victoryPop 0.6s ease;
+        }
+
+        .feedback-area .feedback-text.waiting {
+            color: rgba(255, 255, 255, 0.15);
+            font-size: 16px;
+            font-weight: 400;
+        }
+
+        /* ===== CHAT SIDEBAR ===== */
+        .chat-sidebar {
+            display: flex;
+            flex-direction: column;
+            max-height: calc(100vh - 40px);
+        }
+
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .chat-header h3 {
+            color: #fff;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chat-header .badge {
+            background: rgba(245, 87, 108, 0.15);
+            color: #f5576c;
+            font-size: 11px;
+            padding: 2px 10px;
+            border-radius: 30px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 0;
+            min-height: 300px;
+            max-height: 500px;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .chat-message {
+            margin-bottom: 8px;
+            animation: slideUp 0.3s ease;
+        }
+
+        .chat-message .msg-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 2px;
+        }
+
+        .chat-message .msg-name {
+            color: #667eea;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .chat-message .msg-name.other {
+            color: #f093fb;
+        }
+
+        .chat-message .msg-time {
+            color: rgba(255, 255, 255, 0.15);
+            font-size: 10px;
+        }
+
+        .chat-message .msg-text {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            word-wrap: break-word;
+            padding-left: 4px;
+        }
+
+        .chat-message .msg-text .emoji {
+            font-size: 18px;
+        }
+
+        .chat-typing {
+            color: rgba(255, 255, 255, 0.15);
+            font-size: 12px;
+            padding: 4px 0;
+            min-height: 20px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .chat-typing .dot {
+            display: inline-block;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            animation: typingDot 1.4s infinite;
+        }
+
+        .chat-typing .dot:nth-child(2) { animation-delay: 0.2s; }
+        .chat-typing .dot:nth-child(3) { animation-delay: 0.4s; }
+
+        .chat-input-group {
+            display: flex;
+            gap: 10px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .chat-input-group input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            color: #fff;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .chat-input-group input:focus {
+            outline: none;
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+
+        .chat-input-group input::placeholder {
+            color: rgba(255, 255, 255, 0.15);
+        }
+
+        .chat-input-group .send-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 18px;
+        }
+
+        .chat-input-group .send-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* ===== OVERLAY ===== */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            animation: slideUp 0.3s ease;
+        }
+
+        .overlay.show {
+            display: flex;
+        }
+
+        .overlay-content {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(30px);
+            border-radius: 40px;
+            padding: 50px 40px;
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .overlay-content .emoji {
+            font-size: 72px;
+            margin-bottom: 16px;
+        }
+
+        .overlay-content h2 {
+            color: #fff;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .overlay-content p {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .overlay-content .secret-reveal {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 12px;
+            border-radius: 12px;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .overlay-content .secret-reveal strong {
+            color: #fff;
+            font-size: 24px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .overlay-content .btn-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .overlay-content .btn-group .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .overlay-content .btn-group .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+        }
+
+        .overlay-content .btn-group .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .overlay-content .btn-group .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .overlay-content .btn-group .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* ===== CONFETTI ===== */
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 99;
+            overflow: hidden;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            animation: confettiFall linear forwards;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .chat-sidebar {
+                max-height: 350px;
+            }
+
+            .chat-messages {
+                max-height: 200px;
+                min-height: 150px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .players-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .game-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+
+            .game-header .actions {
+                justify-content: flex-start;
+            }
+
+            .guess-input-group {
+                flex-direction: column;
+            }
+
+            .guess-input-group .guess-btn {
+                width: 100%;
+            }
+
+            .feedback-area .feedback-text {
+                font-size: 22px;
+            }
+
+            .glass-card {
+                padding: 18px;
+                border-radius: 20px;
+            }
+
+            .overlay-content {
+                padding: 30px 20px;
+            }
+
+            .overlay-content .emoji {
+                font-size: 48px;
+            }
+
+            .overlay-content h2 {
+                font-size: 22px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .glass-card {
+                padding: 14px;
+                border-radius: 16px;
+            }
+
+            .player-card {
+                padding: 14px;
+            }
+
+            .feedback-area .feedback-text {
+                font-size: 18px;
+            }
+        }
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- ===== PARTICLES ===== -->
+    <div class="particles-container">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <div class="orbital-ring"></div>
+    <div class="orbital-ring"></div>
+
+    <!-- ===== CONFETTI ===== -->
+    <div class="confetti-container" id="confettiContainer"></div>
+
+    <!-- ===== GAME OVER OVERLAY ===== -->
+    <div class="overlay" id="gameOverOverlay">
+        <div class="overlay-content">
+            <div class="emoji" id="resultEmoji">🏆</div>
+            <h2 id="resultTitle">لقد فزت!</h2>
+            <p id="resultDesc">لقد خمنت الرقم بشكل صحيح!</p>
+            <div class="secret-reveal">
+                الرقم السري كان: <strong id="secretReveal">42</strong>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" id="restartBtn">🔄 العب مرة أخرى</button>
+                <button class="btn btn-secondary" id="leaveGameBtn">🚪 مغادرة</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <div class="container">
+        <!-- ===== GAME AREA ===== -->
+        <div class="game-area">
+            <div class="glass-card">
+                <!-- Header -->
+                <div class="game-header">
+                    <div class="left">
+                        <div class="room-code">
+                            🏠 <span id="roomCodeDisplay">------</span>
+                        </div>
+                        <div class="status-badge waiting" id="statusBadge">⏳ في انتظار...</div>
+                    </div>
+                    <div class="actions">
+                        <button class="btn-icon success" id="restartGameBtn">🔄 إعادة</button>
+                        <button class="btn-icon danger" id="leaveGameBtnHeader">🚪 مغادرة</button>
+                    </div>
+                </div>
+
+                <!-- Players -->
+                <div class="players-grid">
+                    <div class="player-card" id="player1Card">
+                        <div class="player-name">
+                            <span id="player1Name">أنت</span>
+                            <span class="badge you">أنت</span>
+                        </div>
+                        <div class="player-status">
+                            <span class="dot online"></span>
+                            <span id="player1Status">متصل</span>
+                        </div>
+                    </div>
+
+                    <div class="player-card" id="player2Card">
+                        <div class="player-name">
+                            <span id="player2Name">في انتظار...</span>
+                            <span class="badge opponent">الخصم</span>
+                        </div>
+                        <div class="player-status">
+                            <span class="dot waiting" id="player2Dot"></span>
+                            <span id="player2Status">في انتظار...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Guess Area -->
+                <div class="guess-area">
+                    <div class="guess-label">
+                        <span>🎯 تخمينك</span>
+                        <span class="hint-text" id="turnHint">دورك الآن</span>
+                    </div>
+                    <div class="guess-input-group">
+                        <input 
+                            type="number" 
+                            id="guessInput" 
+                            placeholder="أدخل رقمك..."
+                            disabled
+                        />
+                        <button class="guess-btn" id="guessBtn" disabled>
+                            🚀 تخمين
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Feedback -->
+                <div class="feedback-area">
+                    <div class="feedback-text waiting" id="feedbackText">
+                        ⏳ في انتظار بدء المباراة...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== CHAT SIDEBAR ===== -->
+        <div class="glass-card chat-sidebar">
+            <div class="chat-header">
+                <h3>💬 الدردشة <span class="badge" id="chatBadge">0</span></h3>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                <div class="chat-message" style="text-align:center; color:rgba(255,255,255,0.1); font-size:13px; padding:20px 0;">
+                    💬 ابدأ المحادثة...
+                </div>
+            </div>
+
+            <div class="chat-typing" id="typingIndicator"></div>
+
+            <div class="chat-input-group">
+                <input 
+                    type="text" 
+                    id="chatInput" 
+                    placeholder="اكتب رسالة..."
+                    maxlength="200"
+                />
+                <button class="send-btn" id="chatSendBtn">📤</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SCRIPTS ===== -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // ===== DOM ELEMENTS =====
+        const socket = io();
+
+        const roomCodeDisplay = document.getElementById('roomCodeDisplay');
+        const statusBadge = document.getElementById('statusBadge');
+        const player1Name = document.getElementById('player1Name');
+        const player2Name = document.getElementById('player2Name');
+        const player1Status = document.getElementById('player1Status');
+        const player2Status = document.getElementById('player2Status');
+        const player2Dot = document.getElementById('player2Dot');
+        const player1Card = document.getElementById('player1Card');
+        const player2Card = document.getElementById('player2Card');
+        const guessInput = document.getElementById('guessInput');
+        const guessBtn = document.getElementById('guessBtn');
+        const feedbackText = document.getElementById('feedbackText');
+        const turnHint = document.getElementById('turnHint');
+
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const chatSendBtn = document.getElementById('chatSendBtn');
+        const chatBadge = document.getElementById('chatBadge');
+        const typingIndicator = document.getElementById('typingIndicator');
+
+        const gameOverOverlay = document.getElementById('gameOverOverlay');
+        const resultEmoji = document.getElementById('resultEmoji');
+        const resultTitle = document.getElementById('resultTitle');
+        const resultDesc = document.getElementById('resultDesc');
+        const secretReveal = document.getElementById('secretReveal');
+        const restartBtn = document.getElementById('restartBtn');
+        const leaveGameBtn = document.getElementById('leaveGameBtn');
+        const leaveGameBtnHeader = document.getElementById('leaveGameBtnHeader');
+        const restartGameBtn = document.getElementById('restartGameBtn');
+        const confettiContainer = document.getElementById('confettiContainer');
+
+        // ===== STATE =====
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomCode = urlParams.get('room');
+        let playerName = localStorage.getItem('playerName') || 'لاعب';
+        let isMyTurn = false;
+        let gameActive = false;
+        let gameOver = false;
+        let isTyping = false;
+        let typingTimeout = null;
+        let chatCount = 0;
+
+        // ===== INIT =====
+        if (!roomCode) {
+            window.location.href = '/';
+            return;
+        }
+
+        roomCodeDisplay.textContent = roomCode;
+
+        // ===== SOCKET EVENTS =====
+
+        // Join room
+        socket.emit('join-room', {
+            roomCode: roomCode,
+            playerName: playerName,
+            secretNumber: parseInt(localStorage.getItem('secretNumber')) || 0
+        });
+
+        // Game start
+        socket.on('game-start', (data) => {
+            gameActive = true;
+            statusBadge.textContent = '🎮 جاري اللعب';
+            statusBadge.className = 'status-badge playing';
+            feedbackText.textContent = '🎯 ابدأ التخمين!';
+            feedbackText.className = 'feedback-text';
+
+            // Update players
+            data.players.forEach((p, index) => {
+                if (index === 0) {
+                    player1Name.textContent = p.name;
+                    player1Status.textContent = 'متصل';
+                } else {
+                    player2Name.textContent = p.name;
+                    player2Status.textContent = 'متصل';
+                    player2Dot.className = 'dot online';
+                }
+            });
+
+            updateTurn(data.currentTurn);
+        });
+
+        // Your turn
+        socket.on('your-turn', (data) => {
+            isMyTurn = data.isYourTurn;
+            updateTurn(data.isYourTurn ? socket.id : null);
+        });
+
+        // Turn switch
+        socket.on('turn-switch', (data) => {
+            updateTurn(data.currentTurn);
+        });
+
+        // Guess result
+        socket.on('guess-result', (data) => {
+            if (data.isCorrect) {
+                feedbackText.textContent = '🎉 صحيح! لقد فزت!';
+                feedbackText.className = 'feedback-text correct';
+                showGameOver(true, data.guess);
+            } else {
+                const emoji = data.result === 'higher' ? '⬆️' : '⬇️';
+                const text = data.result === 'higher' ? 'أعلى ↑' : 'أقل ↓';
+                feedbackText.textContent = `${emoji} ${text}`;
+                feedbackText.className = `feedback-text ${data.result}`;
+                
+                // Re-enable guess after short delay
+                setTimeout(() => {
+                    if (!gameOver && isMyTurn && gameActive) {
+                        guessInput.disabled = false;
+                        guessBtn.disabled = false;
+                        guessInput.focus();
+                    }
+                }, 800);
+            }
+        });
+
+        // Opponent guessed
+        socket.on('opponent-guessed', (data) => {
+            const emoji = data.result === 'higher' ? '⬆️' : '⬇️';
+            const text = data.result === 'higher' ? 'أعلى ↑' : 'أقل ↓';
+            feedbackText.textContent = `الخصم خمن: ${emoji} ${text}`;
+            feedbackText.className = `feedback-text ${data.result}`;
+        });
+
+        // Game over
+        socket.on('game-over', (data) => {
+            gameActive = false;
+            gameOver = true;
+            const isWinner = data.winner === socket.id;
+            showGameOver(isWinner, data.secretNumber);
+        });
+
+        // Game restarted
+        socket.on('game-restarted', (data) => {
+            gameActive = true;
+            gameOver = false;
+            gameOverOverlay.classList.remove('show');
+            feedbackText.textContent = '🔄 تم إعادة المباراة!';
+            feedbackText.className = 'feedback-text';
+            statusBadge.textContent = '🎮 جاري اللعب';
+            statusBadge.className = 'status-badge playing';
+            updateTurn(data.currentTurn);
+            guessInput.value = '';
+        });
+
+        // Players update
+        socket.on('players-update', (data) => {
+            if (data.players.length === 1) {
+                player2Name.textContent = 'في انتظار...';
+                player2Status.textContent = 'في انتظار...';
+                player2Dot.className = 'dot waiting';
+                statusBadge.textContent = '⏳ في انتظار الخصم';
+                statusBadge.className = 'status-badge waiting';
+            } else {
+                data.players.forEach((p, index) => {
+                    if (index === 0) {
+                        player1Name.textContent = p.name;
+                        player1Status.textContent = 'متصل';
+                    } else {
+                        player2Name.textContent = p.name;
+                        player2Status.textContent = 'متصل';
+                        player2Dot.className = 'dot online';
+                    }
+                });
+                if (!gameActive) {
+                    statusBadge.textContent = '👥 جاهز للبدء';
+                    statusBadge.className = 'status-badge playing';
+                }
+            }
+        });
+
+        // Player left
+        socket.on('player-left', (data) => {
+            if (data.players.length === 1) {
+                player2Name.textContent = 'في انتظار...';
+                player2Status.textContent = 'في انتظار...';
+                player2Dot.className = 'dot waiting';
+                statusBadge.textContent = '⏳ في انتظار الخصم';
+                statusBadge.className = 'status-badge waiting';
+                gameActive = false;
+                feedbackText.textContent = '⏳ الخصم غادر الغرفة...';
+                feedbackText.className = 'feedback-text waiting';
+                guessInput.disabled = true;
+                guessBtn.disabled = true;
+                turnHint.textContent = 'في انتظار خصم...';
+            }
+        });
+
+        // Chat
+        socket.on('chat-message', (data) => {
+            addChatMessage(data.playerName, data.message, data.playerId === socket.id);
+        });
+
+        // Typing indicator
+        socket.on('typing-indicator', (data) => {
+            if (data.isTyping) {
+                typingIndicator.textContent = `${data.playerName} يكتب...`;
+                typingIndicator.style.display = 'flex';
+            } else {
+                typingIndicator.textContent = '';
+                typingIndicator.style.display = 'none';
+            }
+        });
+
+        // Error
+        socket.on('error', (data) => {
+            console.error('Error:', data.message);
+            feedbackText.textContent = `❌ ${data.message}`;
+            feedbackText.className = 'feedback-text';
+        });
+
+        // ===== FUNCTIONS =====
+
+        function updateTurn(currentTurnId) {
+            const isMyTurn = currentTurnId === socket.id;
+            
+            player1Card.classList.toggle('active-turn', isMyTurn);
+            player2Card.classList.toggle('active-turn', !isMyTurn && gameActive);
+
+            if (gameActive && !gameOver) {
+                if (isMyTurn) {
+                    guessInput.disabled = false;
+                    guessBtn.disabled = false;
+                    guessInput.focus();
+                    turnHint.textContent = '🎯 دورك الآن!';
+                    feedbackText.textContent = '🎯 خمن رقم الخصم!';
+                    feedbackText.className = 'feedback-text';
+                } else {
+                    guessInput.disabled = true;
+                    guessBtn.disabled = true;
+                    turnHint.textContent = '⏳ في انتظار دور الخصم...';
+                    feedbackText.textContent = '⏳ في انتظار تخمين الخصم...';
+                    feedbackText.className = 'feedback-text waiting';
+                }
+            }
+        }
+
+        function showGameOver(won, secretNumber) {
+            gameOver = true;
+            gameActive = false;
+            guessInput.disabled = true;
+            guessBtn.disabled = true;
+
+            if (won) {
+                resultEmoji.textContent = '🏆';
+                resultTitle.textContent = '🎉 لقد فزت!';
+                resultDesc.textContent = 'مبروك! لقد خمنت الرقم بشكل صحيح!';
+                secretReveal.textContent = secretNumber;
+                gameOverOverlay.classList.add('show');
+                launchConfetti();
+            } else {
+                resultEmoji.textContent = '😢';
+                resultTitle.textContent = 'لقد خسرت!';
+                resultDesc.textContent = 'الخصم خمن رقمك بشكل صحيح!';
+                secretReveal.textContent = secretNumber;
+                gameOverOverlay.classList.add('show');
+            }
+        }
+
+        function launchConfetti() {
+            const colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4caf50', '#ffc107', '#ff6b6b', '#4ecdc4'];
+            
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.width = Math.random() * 8 + 4 + 'px';
+                confetti.style.height = Math.random() * 8 + 4 + 'px';
+                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+                confetti.style.animationDuration = Math.random() * 2 + 2 + 's';
+                confetti.style.animationDelay = Math.random() * 1.5 + 's';
+                confettiContainer.appendChild(confetti);
+            }
+
+            setTimeout(() => {
+                confettiContainer.innerHTML = '';
+            }, 5000);
+        }
+
+        function addChatMessage(name, message, isMe) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'chat-message';
+            
+            const time = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+            
+            msgDiv.innerHTML = `
+                <div class="msg-header">
+                    <span class="msg-name ${isMe ? '' : 'other'}">${isMe ? 'أنت' : name}</span>
+                    <span class="msg-time">${time}</span>
+                </div>
+                <div class="msg-text">${message}</div>
+            `;
+            
+            // Remove empty state
+            const emptyMsg = chatMessages.querySelector('.chat-message[style]');
+            if (emptyMsg) emptyMsg.remove();
+            
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            chatCount++;
+            chatBadge.textContent = chatCount;
+        }
+
+        function sendChatMessage() {
+            const message = chatInput.value.trim();
+            if (!message || !roomCode) return;
+            
+            socket.emit('chat-message', {
+                roomCode: roomCode,
+                message: message
+            });
+            
+            chatInput.value = '';
+            chatInput.focus();
+            
+            // Clear typing
+            if (isTyping) {
+                isTyping = false;
+                socket.emit('typing', { roomCode, isTyping: false });
+            }
+        }
+
+        // ===== EVENT LISTENERS =====
+
+        // Guess
+        guessBtn.addEventListener('click', () => {
+            const guess = guessInput.value.trim();
+            if (!guess || !roomCode || !gameActive || gameOver) return;
+            
+            const guessNum = parseInt(guess);
+            if (isNaN(guessNum)) {
+                feedbackText.textContent = '❌ الرجاء إدخال رقم صحيح';
+                feedbackText.className = 'feedback-text';
+                return;
+            }
+            
+            guessInput.disabled = true;
+            guessBtn.disabled = true;
+            
+            socket.emit('make-guess', {
+                roomCode: roomCode,
+                guess: guessNum
+            });
+            
+            guessInput.value = '';
+            feedbackText.textContent = '⏳ جاري التحقق...';
+            feedbackText.className = 'feedback-text waiting';
+        });
+
+        guessInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                guessBtn.click();
+            }
+        });
+
+        // Chat
+        chatSendBtn.addEventListener('click', sendChatMessage);
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                sendChatMessage();
+            }
+        });
+
+        chatInput.addEventListener('input', () => {
+            if (!roomCode) return;
+            
+            const hasText = chatInput.value.trim().length > 0;
+            
+            if (hasText && !isTyping) {
+                isTyping = true;
+                socket.emit('typing', { roomCode, isTyping: true });
+            } else if (!hasText && isTyping) {
+                isTyping = false;
+                socket.emit('typing', { roomCode, isTyping: false });
+            }
+            
+            clearTimeout(typingTimeout);
+            if (hasText) {
+                typingTimeout = setTimeout(() => {
+                    if (isTyping) {
+                        isTyping = false;
+                        socket.emit('typing', { roomCode, isTyping: false });
+                    }
+                }, 2000);
+            }
+        });
+
+        // Restart
+        restartBtn.addEventListener('click', () => {
+            if (roomCode) {
+                socket.emit('restart-game', { roomCode });
+                gameOverOverlay.classList.remove('show');
+                confettiContainer.innerHTML = '';
+            }
+        });
+
+        restartGameBtn.addEventListener('click', () => {
+            if (roomCode) {
+                socket.emit('restart-game', { roomCode });
+            }
+        });
+
+        // Leave
+        function leaveRoom() {
+            if (confirm('هل أنت متأكد من مغادرة الغرفة؟')) {
+                socket.emit('leave-room', { roomCode });
+                localStorage.removeItem('roomCode');
+                localStorage.removeItem('playerName');
+                localStorage.removeItem('gameData');
+                window.location.href = '/';
+            }
+        }
+
+        leaveGameBtn.addEventListener('click', leaveRoom);
+        leaveGameBtnHeader.addEventListener('click', leaveRoom);
+
+        // ===== KEYBOARD SHORTCUTS =====
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (gameOverOverlay.classList.contains('show')) {
+                    gameOverOverlay.classList.remove('show');
+                } else {
+                    leaveRoom();
+                }
+            }
+        });
+
+        // ===== CONSOLE =====
+        console.log('%c🎯 Number Duel - Game', 'font-size: 20px; font-weight: bold; color: #667eea;');
+        console.log(`%c🏠 Room: ${roomCode}`, 'font-size: 14px; color: #888;');
+        console.log(`%c👤 Player: ${playerName}`, 'font-size: 14px; color: #888;');
+        console.log('%c🎮 استمتع باللعب!', 'font-size: 14px; color: #4caf50;');
+    </script>
+</body>
+</html>
