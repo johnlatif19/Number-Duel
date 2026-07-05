@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>إنشاء غرفة - Number Duel</title>
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/tJB1SG8c/Number-Duel.png">
+    <style>
+        /* ===== RESET & BASE ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(2deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(0.98); }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes rotateSlow {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        @keyframes loadingSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #1a1a3e);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* ===== ANIMATED BACKGROUND PARTICLES ===== */
+        .particles-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1), transparent);
+            animation: float 20s infinite alternate ease-in-out;
+        }
+
+        .particle:nth-child(1) { width: 300px; height: 300px; top: -100px; left: -100px; animation-duration: 25s; }
+        .particle:nth-child(2) { width: 400px; height: 400px; bottom: -150px; right: -150px; animation-duration: 30s; animation-delay: 2s; }
+        .particle:nth-child(3) { width: 200px; height: 200px; top: 50%; left: 50%; transform: translate(-50%, -50%); animation-duration: 20s; animation-delay: 4s; }
+        .particle:nth-child(4) { width: 150px; height: 150px; top: 20%; right: 10%; animation-duration: 22s; animation-delay: 1s; }
+        .particle:nth-child(5) { width: 250px; height: 250px; bottom: 20%; left: 10%; animation-duration: 28s; animation-delay: 3s; }
+
+        /* ===== ORBITAL RINGS ===== */
+        .orbital-ring {
+            position: fixed;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 50%;
+            animation: rotateSlow 60s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .orbital-ring:nth-child(6) { width: 600px; height: 600px; top: 50%; left: 50%; transform: translate(-50%, -50%); animation-duration: 80s; }
+        .orbital-ring:nth-child(7) { width: 800px; height: 800px; top: 50%; left: 50%; transform: translate(-50%, -50%); animation-duration: 100s; animation-direction: reverse; }
+
+        /* ===== MAIN CONTAINER ===== */
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 520px;
+            animation: slideUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        /* ===== GLASS CARD ===== */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border-radius: 40px;
+            padding: 45px 40px 40px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 
+                0 30px 80px rgba(0, 0, 0, 0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            transition: all 0.4s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 
+                0 40px 100px rgba(0, 0, 0, 0.7),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.8);
+            transform: translateX(-3px);
+        }
+
+        .header-title {
+            color: #fff;
+            font-size: 22px;
+            font-weight: 700;
+            flex: 1;
+        }
+
+        .header-title span {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* ===== FORM ===== */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group label .required {
+            color: #f5576c;
+            margin-left: 4px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.04);
+            color: #fff;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: rgba(102, 126, 234, 0.5);
+            background: rgba(255, 255, 255, 0.06);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.25);
+        }
+
+        .form-group input.error {
+            border-color: rgba(245, 87, 108, 0.5);
+            box-shadow: 0 0 0 4px rgba(245, 87, 108, 0.1);
+        }
+
+        .form-group .error-text {
+            color: #f5576c;
+            font-size: 12px;
+            margin-top: 6px;
+            display: none;
+        }
+
+        .form-group .error-text.show {
+            display: block;
+        }
+
+        .form-group .hint {
+            color: rgba(255, 255, 255, 0.25);
+            font-size: 12px;
+            margin-top: 6px;
+            letter-spacing: 0.3px;
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            padding: 16px 30px;
+            border: none;
+            border-radius: 16px;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.35);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 12px 48px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            font-size: 14px;
+            letter-spacing: 1px;
+            margin-top: 12px;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.7);
+            border-color: rgba(255, 255, 255, 0.12);
+            transform: translateY(-2px);
+        }
+
+        /* ===== ROOM CODE DISPLAY ===== */
+        .room-code-display {
+            display: none;
+            text-align: center;
+            padding: 25px 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            margin-top: 20px;
+        }
+
+        .room-code-display.show {
+            display: block;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .room-code-display .label {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 12px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .room-code-display .code {
+            font-size: 48px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 8px;
+            margin: 10px 0 15px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .room-code-display .copy-btn {
+            padding: 10px 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .room-code-display .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .room-code-display .copy-btn.copied {
+            border-color: #4caf50;
+            color: #4caf50;
+        }
+
+        .room-code-display .waiting-text {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 14px;
+            margin-top: 15px;
+        }
+
+        .room-code-display .waiting-text .dots::after {
+            content: '';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0% { content: ''; }
+            25% { content: '.'; }
+            50% { content: '..'; }
+            75% { content: '...'; }
+            100% { content: ''; }
+        }
+
+        /* ===== LOADING SPINNER ===== */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: loadingSpin 0.8s linear infinite;
+        }
+
+        /* ===== STATUS TEXT ===== */
+        .status-text {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.15);
+            font-size: 11px;
+            letter-spacing: 1px;
+            margin-top: 20px;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 600px) {
+            .glass-card {
+                padding: 30px 22px 28px;
+                border-radius: 28px;
+            }
+
+            .header-title {
+                font-size: 19px;
+            }
+
+            .form-group input {
+                padding: 12px 14px;
+                font-size: 15px;
+            }
+
+            .btn {
+                font-size: 15px;
+                padding: 14px 20px;
+            }
+
+            .room-code-display .code {
+                font-size: 36px;
+                letter-spacing: 6px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .glass-card {
+                padding: 22px 16px 20px;
+                border-radius: 20px;
+            }
+
+            .header-title {
+                font-size: 16px;
+            }
+
+            .back-btn {
+                width: 38px;
+                height: 38px;
+                font-size: 16px;
+            }
+
+            .form-group input {
+                padding: 10px 12px;
+                font-size: 14px;
+            }
+
+            .btn {
+                font-size: 13px;
+                padding: 12px 16px;
+                gap: 8px;
+            }
+
+            .room-code-display .code {
+                font-size: 28px;
+                letter-spacing: 4px;
+            }
+        }
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- ===== ANIMATED BACKGROUND ===== -->
+    <div class="particles-container">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <div class="orbital-ring"></div>
+    <div class="orbital-ring"></div>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <div class="container">
+        <div class="glass-card">
+            <!-- Header -->
+            <div class="header">
+                <a href="/" class="back-btn">←</a>
+                <h1 class="header-title">🎯 إنشاء <span>غرفة</span></h1>
+            </div>
+
+            <!-- Form -->
+            <form id="createRoomForm" autocomplete="off">
+                <div class="form-group">
+                    <label>
+                        اسمك <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        id="playerName" 
+                        placeholder="أدخل اسمك..." 
+                        required
+                        maxlength="20"
+                    />
+                    <div class="error-text" id="nameError">الرجاء إدخال اسم صحيح</div>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        رقم التخمين <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="number" 
+                        id="secretNumber" 
+                        placeholder="أدخل رقم التخمين (أي عدد صحيح)"
+                        required
+                    />
+                    <div class="error-text" id="numberError">الرجاء إدخال رقم صحيح</div>
+                    <div class="hint">💡 يمكنك اختيار أي عدد صحيح: موجب، سالب، أو صفر</div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="createBtn">
+                    <span class="icon">🚀</span>
+                    إنشاء الغرفة
+                </button>
+            </form>
+
+            <!-- Room Code Display -->
+            <div class="room-code-display" id="roomCodeDisplay">
+                <div class="label">🎫 رمز الغرفة</div>
+                <div class="code" id="roomCode">XXXXXX</div>
+                <button class="copy-btn" id="copyBtn">
+                    📋 نسخ الرمز
+                </button>
+                <div class="waiting-text">
+                    ⏳ في انتظار لاعب آخر <span class="dots"></span>
+                </div>
+            </div>
+
+            <button class="btn btn-secondary" id="cancelBtn" style="display: none;">
+                ✖ إلغاء
+            </button>
+
+            <!-- Status -->
+            <div class="status-text">
+                <span id="statusMessage">🎮 أدخل بياناتك وابدأ التحدي</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SCRIPTS ===== -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // ===== DOM ELEMENTS =====
+        const form = document.getElementById('createRoomForm');
+        const playerNameInput = document.getElementById('playerName');
+        const secretNumberInput = document.getElementById('secretNumber');
+        const nameError = document.getElementById('nameError');
+        const numberError = document.getElementById('numberError');
+        const createBtn = document.getElementById('createBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const roomCodeDisplay = document.getElementById('roomCodeDisplay');
+        const roomCodeElement = document.getElementById('roomCode');
+        const copyBtn = document.getElementById('copyBtn');
+        const statusMessage = document.getElementById('statusMessage');
+
+        // ===== SOCKET =====
+        const socket = io();
+
+        let roomCode = null;
+        let isWaiting = false;
+
+        // ===== VALIDATION =====
+        function validateName(name) {
+            return name && name.trim().length >= 2 && name.trim().length <= 20;
+        }
+
+        function validateNumber(num) {
+            return num !== '' && num !== null && num !== undefined && !isNaN(parseInt(num));
+        }
+
+        // ===== FORM SUBMIT =====
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // Reset errors
+            nameError.classList.remove('show');
+            numberError.classList.remove('show');
+            playerNameInput.classList.remove('error');
+            secretNumberInput.classList.remove('error');
+
+            // Validate
+            const name = playerNameInput.value.trim();
+            const secret = secretNumberInput.value;
+
+            let isValid = true;
+
+            if (!validateName(name)) {
+                nameError.classList.add('show');
+                playerNameInput.classList.add('error');
+                isValid = false;
+            }
+
+            if (!validateNumber(secret)) {
+                numberError.classList.add('show');
+                secretNumberInput.classList.add('error');
+                isValid = false;
+            }
+
+            if (!isValid) return;
+
+            // Create room
+            createBtn.disabled = true;
+            createBtn.innerHTML = '<span class="spinner"></span> جاري الإنشاء...';
+            statusMessage.textContent = '⏳ جاري إنشاء الغرفة...';
+
+            socket.emit('create-room', {
+                playerName: name,
+                secretNumber: parseInt(secret)
+            });
+        });
+
+        // ===== SOCKET EVENTS =====
+        socket.on('room-created', (data) => {
+            roomCode = data.roomCode;
+            isWaiting = true;
+            
+            // Show room code
+            roomCodeElement.textContent = roomCode;
+            roomCodeDisplay.classList.add('show');
+            cancelBtn.style.display = 'block';
+            
+            createBtn.style.display = 'none';
+            form.style.display = 'none';
+            
+            statusMessage.textContent = '🎯 في انتظار لاعب آخر للانضمام...';
+            
+            // Save room data for reconnection
+            localStorage.setItem('roomCode', roomCode);
+            localStorage.setItem('playerName', playerNameInput.value.trim());
+            
+            console.log(`✅ Room created: ${roomCode}`);
+        });
+
+        socket.on('game-start', (data) => {
+            statusMessage.textContent = '🎮 بدأت المباراة! جاري التحويل...';
+            
+            // Store game data
+            localStorage.setItem('gameData', JSON.stringify({
+                roomCode: roomCode,
+                playerName: playerNameInput.value.trim()
+            }));
+            
+            // Redirect to game page after short delay
+            setTimeout(() => {
+                window.location.href = `/game.html?room=${roomCode}`;
+            }, 1000);
+        });
+
+        socket.on('error', (data) => {
+            createBtn.disabled = false;
+            createBtn.innerHTML = '<span class="icon">🚀</span> إنشاء الغرفة';
+            statusMessage.textContent = `❌ ${data.message}`;
+            
+            if (data.message.includes('name')) {
+                nameError.textContent = data.message;
+                nameError.classList.add('show');
+                playerNameInput.classList.add('error');
+            }
+        });
+
+        // ===== COPY ROOM CODE =====
+        copyBtn.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(roomCode);
+                copyBtn.textContent = '✅ تم النسخ!';
+                copyBtn.classList.add('copied');
+                
+                setTimeout(() => {
+                    copyBtn.textContent = '📋 نسخ الرمز';
+                    copyBtn.classList.remove('copied');
+                }, 2000);
+            } catch (err) {
+                // Fallback
+                const textarea = document.createElement('textarea');
+                textarea.value = roomCode;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                
+                copyBtn.textContent = '✅ تم النسخ!';
+                copyBtn.classList.add('copied');
+                
+                setTimeout(() => {
+                    copyBtn.textContent = '📋 نسخ الرمز';
+                    copyBtn.classList.remove('copied');
+                }, 2000);
+            }
+        });
+
+        // ===== CANCEL =====
+        cancelBtn.addEventListener('click', () => {
+            if (confirm('هل أنت متأكد من إلغاء إنشاء الغرفة؟')) {
+                socket.emit('leave-room', { roomCode });
+                localStorage.removeItem('roomCode');
+                localStorage.removeItem('playerName');
+                window.location.href = '/';
+            }
+        });
+
+        // ===== KEYBOARD SHORTCUTS =====
+        document.addEventListener('keydown', (e) => {
+            // Enter to submit
+            if (e.key === 'Enter' && !createBtn.disabled) {
+                form.dispatchEvent(new Event('submit'));
+            }
+            // Escape to go back
+            if (e.key === 'Escape') {
+                if (isWaiting) {
+                    cancelBtn.click();
+                } else {
+                    window.location.href = '/';
+                }
+            }
+        });
+
+        // ===== CONSOLE =====
+        console.log('%c🎯 Number Duel - Create Room', 'font-size: 20px; font-weight: bold; color: #667eea;');
+        console.log('%c📝 أدخل بياناتك وابدأ التحدي!', 'font-size: 14px; color: #888;');
+
+        // ===== CHECK FOR EXISTING ROOM =====
+        const savedRoom = localStorage.getItem('roomCode');
+        if (savedRoom) {
+            if (confirm('لديك غرفة مفتوحة حالياً. هل تريد العودة إليها؟')) {
+                window.location.href = `/game.html?room=${savedRoom}`;
+            } else {
+                localStorage.removeItem('roomCode');
+                localStorage.removeItem('playerName');
+                localStorage.removeItem('gameData');
+            }
+        }
+    </script>
+</body>
+</html>
