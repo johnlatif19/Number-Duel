@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>تسجيل الدخول - Number Duel</title>
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/tJB1SG8c/Number-Duel.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #1a1a3e);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* ===== PARTICLES ===== */
+        .particles-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1), transparent);
+            animation: float 20s infinite alternate ease-in-out;
+        }
+
+        .particle:nth-child(1) { width: 300px; height: 300px; top: -100px; left: -100px; animation-duration: 25s; }
+        .particle:nth-child(2) { width: 400px; height: 400px; bottom: -150px; right: -150px; animation-duration: 30s; animation-delay: 2s; }
+        .particle:nth-child(3) { width: 200px; height: 200px; top: 50%; left: 50%; transform: translate(-50%, -50%); animation-duration: 20s; animation-delay: 4s; }
+        .particle:nth-child(4) { width: 150px; height: 150px; top: 20%; right: 10%; animation-duration: 22s; animation-delay: 1s; }
+        .particle:nth-child(5) { width: 250px; height: 250px; bottom: 20%; left: 10%; animation-duration: 28s; animation-delay: 3s; }
+
+        /* ===== CONTAINER ===== */
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 440px;
+            animation: slideUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        /* ===== GLASS CARD ===== */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border-radius: 40px;
+            padding: 45px 40px 40px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+            transition: all 0.4s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        /* ===== LOGO ===== */
+        .logo-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo-container img {
+            max-width: 220px;
+            width: 100%;
+            height: auto;
+            filter: drop-shadow(0 10px 40px rgba(102, 126, 234, 0.2));
+        }
+
+        .login-title {
+            text-align: center;
+            color: #fff;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .login-title span {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .login-subtitle {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 14px;
+            margin-bottom: 30px;
+            letter-spacing: 0.5px;
+        }
+
+        /* ===== FORM ===== */
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.03);
+            color: #fff;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: rgba(102, 126, 234, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.05);
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.15);
+        }
+
+        .form-group input.error {
+            border-color: rgba(245, 87, 108, 0.5);
+            animation: shake 0.4s ease;
+        }
+
+        /* ===== ERROR MESSAGE ===== */
+        .error-message {
+            background: rgba(245, 87, 108, 0.08);
+            border: 1px solid rgba(245, 87, 108, 0.15);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: #f5576c;
+            font-size: 14px;
+            margin-bottom: 18px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .error-message.show {
+            display: flex;
+        }
+
+        .error-message .icon {
+            font-size: 18px;
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 14px;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 48px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* ===== SPINNER ===== */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ===== FOOTER ===== */
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 22px;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.2);
+            text-decoration: none;
+            font-size: 13px;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 480px) {
+            .glass-card {
+                padding: 30px 22px 28px;
+                border-radius: 28px;
+            }
+
+            .login-title {
+                font-size: 20px;
+            }
+
+            .logo-container img {
+                max-width: 170px;
+            }
+
+            .btn {
+                font-size: 15px;
+                padding: 14px;
+            }
+
+            .form-group input {
+                padding: 12px 14px;
+                font-size: 15px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .glass-card {
+                padding: 22px 16px 20px;
+                border-radius: 20px;
+            }
+
+            .login-title {
+                font-size: 18px;
+            }
+
+            .logo-container img {
+                max-width: 140px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ===== PARTICLES ===== -->
+    <div class="particles-container">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <div class="container">
+        <div class="glass-card">
+            <!-- Logo -->
+            <div class="logo-container">
+                <img 
+                    src="https://i.postimg.cc/tJB1SG8c/Number-Duel.png" 
+                    alt="Number Duel Logo"
+                    loading="lazy"
+                />
+            </div>
+
+            <h2 class="login-title">تسجيل <span>الدخول</span></h2>
+            <p class="login-subtitle">🔐 دخول لوحة التحكم</p>
+
+            <!-- Error Message -->
+            <div class="error-message" id="errorMessage">
+                <span class="icon">❌</span>
+                <span id="errorText">خطأ في اسم المستخدم أو كلمة المرور</span>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" autocomplete="off">
+                <div class="form-group">
+                    <label for="username">👤 اسم المستخدم</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        placeholder="أدخل اسم المستخدم"
+                        required
+                        autofocus
+                    />
+                </div>
+
+                <div class="form-group">
+                    <label for="password">🔒 كلمة المرور</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        placeholder="أدخل كلمة المرور"
+                        required
+                    />
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="loginBtn">
+                    🚀 تسجيل الدخول
+                </button>
+            </form>
+
+            <!-- Footer -->
+            <div class="footer-links">
+                <a href="/">🏠 الصفحة الرئيسية</a>
+                <a href="#" style="color:rgba(255,255,255,0.08);">|</a>
+                <a href="#" style="color:rgba(255,255,255,0.08);">🔒 آمن</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SCRIPTS ===== -->
+    <script>
+        // ===== DOM ELEMENTS =====
+        const form = document.getElementById('loginForm');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const loginBtn = document.getElementById('loginBtn');
+        const errorMessage = document.getElementById('errorMessage');
+        const errorText = document.getElementById('errorText');
+
+        // ===== CHECK IF ALREADY LOGGED IN =====
+        const token = localStorage.getItem('token');
+        const username = localStorage.getItem('username');
+
+        if (token && username) {
+            // Verify token
+            fetch('/api/verify', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(res => {
+                if (res.ok) {
+                    window.location.href = '/dashboard';
+                } else {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('username');
+                }
+            })
+            .catch(() => {
+                localStorage.removeItem('token');
+                localStorage.removeItem('username');
+            });
+        }
+
+        // ===== FORM SUBMIT =====
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Reset error
+            errorMessage.classList.remove('show');
+            usernameInput.classList.remove('error');
+            passwordInput.classList.remove('error');
+
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            if (!username || !password) {
+                showError('الرجاء ملء جميع الحقول');
+                return;
+            }
+
+            // Disable button
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<span class="spinner"></span> جاري التحقق...';
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Save token
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('username', data.username);
+                    
+                    // Redirect to dashboard
+                    window.location.href = '/dashboard';
+                } else {
+                    showError(data.error || 'فشل تسجيل الدخول');
+                    usernameInput.classList.add('error');
+                    passwordInput.classList.add('error');
+                }
+            } catch (error) {
+                showError('حدث خطأ في الاتصال بالخادم');
+                console.error('Login error:', error);
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '🚀 تسجيل الدخول';
+            }
+        });
+
+        // ===== SHOW ERROR =====
+        function showError(message) {
+            errorText.textContent = message;
+            errorMessage.classList.add('show');
+            
+            // Auto hide after 5 seconds
+            setTimeout(() => {
+                errorMessage.classList.remove('show');
+            }, 5000);
+        }
+
+        // ===== KEYBOARD SHORTCUTS =====
+        document.addEventListener('keydown', (e) => {
+            // Escape to go home
+            if (e.key === 'Escape') {
+                window.location.href = '/';
+            }
+        });
+
+        // ===== CONSOLE =====
+        console.log('%c🔐 Number Duel - Login', 'font-size: 20px; font-weight: bold; color: #667eea;');
+        console.log('%c👤 قم بتسجيل الدخول للوصول للوحة التحكم', 'font-size: 14px; color: #888;');
+
+        // ===== FOCUS =====
+        setTimeout(() => {
+            usernameInput.focus();
+        }, 300);
+    </script>
+</body>
+</html>
