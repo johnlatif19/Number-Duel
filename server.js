@@ -80,27 +80,27 @@ function validateGameAccess(req, res, next) {
   const roomCode = req.query.room;
   
   if (!roomCode) {
-    return res.redirect('/enter-room.html');
+    return res.redirect('/enter-room');
   }
   
   if (!roomCodes.has(roomCode)) {
-    return res.redirect('/enter-room.html');
+    return res.redirect('/enter-room');
   }
   
   const room = rooms.get(roomCode);
   if (!room || room.players.length === 0) {
-    return res.redirect('/enter-room.html');
+    return res.redirect('/enter-room');
   }
   
   // منع الدخول إذا كانت المباراة انتهت
   if (room.status === 'finished') {
-    return res.redirect('/enter-room.html');
+    return res.redirect('/enter-room');
   }
   
   next();
 }
 
-// ===== SERVE HTML PAGES =====
+// ===== SERVE HTML PAGES (من غير .html) =====
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -121,7 +121,7 @@ app.get('/enter-room', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'enter-room.html'));
 });
 
-// ===== تعديل Route اللعبة - مع التحقق =====
+// ===== تعديل Route اللعبة مع التحقق =====
 app.get('/game', validateGameAccess, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'game.html'));
 });
