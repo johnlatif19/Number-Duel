@@ -534,20 +534,6 @@
                     <div class="error-text" id="nameError">الرجاء إدخال اسم صحيح</div>
                 </div>
 
-                <div class="form-group">
-                    <label>
-                        رقم التخمين <span class="required">*</span>
-                    </label>
-                    <input 
-                        type="number" 
-                        id="secretNumber" 
-                        placeholder="أدخل رقم التخمين (أي عدد صحيح)"
-                        required
-                    />
-                    <div class="error-text" id="numberError">الرجاء إدخال رقم صحيح</div>
-                    <div class="hint">💡 يمكنك اختيار أي عدد صحيح: موجب، سالب، أو صفر</div>
-                </div>
-
                 <button type="submit" class="btn btn-primary" id="createBtn">
                     <span class="icon">🚀</span>
                     إنشاء الغرفة
@@ -572,7 +558,7 @@
 
             <!-- Status -->
             <div class="status-text">
-                <span id="statusMessage">🎮 أدخل بياناتك وابدأ التحدي</span>
+                <span id="statusMessage">🎮 أدخل اسمك وابدأ التحدي</span>
             </div>
         </div>
     </div>
@@ -583,9 +569,7 @@
         // ===== DOM ELEMENTS =====
         const form = document.getElementById('createRoomForm');
         const playerNameInput = document.getElementById('playerName');
-        const secretNumberInput = document.getElementById('secretNumber');
         const nameError = document.getElementById('nameError');
-        const numberError = document.getElementById('numberError');
         const createBtn = document.getElementById('createBtn');
         const cancelBtn = document.getElementById('cancelBtn');
         const roomCodeDisplay = document.getElementById('roomCodeDisplay');
@@ -604,48 +588,35 @@
             return name && name.trim().length >= 2 && name.trim().length <= 20;
         }
 
-        function validateNumber(num) {
-            return num !== '' && num !== null && num !== undefined && !isNaN(parseInt(num));
-        }
-
         // ===== FORM SUBMIT =====
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             
             // Reset errors
             nameError.classList.remove('show');
-            numberError.classList.remove('show');
             playerNameInput.classList.remove('error');
-            secretNumberInput.classList.remove('error');
 
             // Validate
             const name = playerNameInput.value.trim();
-            const secret = secretNumberInput.value;
-
-            let isValid = true;
 
             if (!validateName(name)) {
                 nameError.classList.add('show');
                 playerNameInput.classList.add('error');
-                isValid = false;
+                return;
             }
 
-            if (!validateNumber(secret)) {
-                numberError.classList.add('show');
-                secretNumberInput.classList.add('error');
-                isValid = false;
-            }
-
-            if (!isValid) return;
-
-            // Create room
+            // Create room - الرقم السري يتولد تلقائياً
             createBtn.disabled = true;
             createBtn.innerHTML = '<span class="spinner"></span> جاري الإنشاء...';
             statusMessage.textContent = '⏳ جاري إنشاء الغرفة...';
 
+            // توليد رقم سري عشوائي بين 1 و 100
+            const secretNumber = Math.floor(Math.random() * 100) + 1;
+            localStorage.setItem('secretNumber', secretNumber);
+
             socket.emit('create-room', {
                 playerName: name,
-                secretNumber: parseInt(secret)
+                secretNumber: secretNumber
             });
         });
 
@@ -734,6 +705,7 @@
                 socket.emit('leave-room', { roomCode });
                 localStorage.removeItem('roomCode');
                 localStorage.removeItem('playerName');
+                localStorage.removeItem('secretNumber');
                 window.location.href = '/';
             }
         });
@@ -756,17 +728,18 @@
 
         // ===== CONSOLE =====
         console.log('%c🎯 Number Duel - Create Room', 'font-size: 20px; font-weight: bold; color: #667eea;');
-        console.log('%c📝 أدخل بياناتك وابدأ التحدي!', 'font-size: 14px; color: #888;');
+        console.log('%c📝 أدخل اسمك وابدأ التحدي!', 'font-size: 14px; color: #888;');
 
         // ===== CHECK FOR EXISTING ROOM =====
         const savedRoom = localStorage.getItem('roomCode');
         if (savedRoom) {
             if (confirm('لديك غرفة مفتوحة حالياً. هل تريد العودة إليها؟')) {
-                window.location.href = `/game.html?room=${savedRoom}`;
+                window.location.href = `/game?room=${savedRoom}`;
             } else {
                 localStorage.removeItem('roomCode');
                 localStorage.removeItem('playerName');
                 localStorage.removeItem('gameData');
+                localStorage.removeItem('secretNumber');
             }
         }
     </script>
