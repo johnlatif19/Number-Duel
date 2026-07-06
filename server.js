@@ -75,6 +75,31 @@ function generateRoomCode() {
   return code;
 }
 
+// ===== MIDDLEWARE للتحقق من دخول اللعبة =====
+function validateGameAccess(req, res, next) {
+  const roomCode = req.query.room;
+  
+  if (!roomCode) {
+    return res.redirect('/enter-room.html');
+  }
+  
+  if (!roomCodes.has(roomCode)) {
+    return res.redirect('/enter-room.html');
+  }
+  
+  const room = rooms.get(roomCode);
+  if (!room || room.players.length === 0) {
+    return res.redirect('/enter-room.html');
+  }
+  
+  // منع الدخول إذا كانت المباراة انتهت
+  if (room.status === 'finished') {
+    return res.redirect('/enter-room.html');
+  }
+  
+  next();
+}
+
 // ===== SERVE HTML PAGES =====
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -96,7 +121,8 @@ app.get('/enter-room', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'enter-room.html'));
 });
 
-app.get('/game', (req, res) => {
+// ===== تعديل Route اللعبة - مع التحقق =====
+app.get('/game', validateGameAccess, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'game.html'));
 });
 
@@ -154,7 +180,6 @@ app.get('/api/dashboard/stats', authenticateToken, (req, res) => {
   });
 });
 
-// ===== IMPORTANT: Check room exists - التعديل الأساسي =====
 app.get('/api/room/check/:code', (req, res) => {
   const { code } = req.params;
   const exists = roomCodes.has(code);
@@ -268,10 +293,11 @@ io.on('connection', (socket) => {
     console.log(`✅ Room ${roomCode} created by ${playerName}`);
   });
   
-  // Join room
+  // Join room - مع تحسينات الأمان
   socket.on('join-room', (data) => {
     const { roomCode, playerName, secretNumber } = data;
     
+    // تحقق من وجود الغرفة
     if (!roomCode || !roomCodes.has(roomCode)) {
       socket.emit('error', { message: 'Room not found' });
       return;
@@ -279,8 +305,15 @@ io.on('connection', (socket) => {
     
     const room = rooms.get(roomCode);
     
+    // تحقق من أن الغرفة مش ممتلئة
     if (room.players.length >= 2) {
       socket.emit('error', { message: 'Room is full' });
+      return;
+    }
+    
+    // تحقق من أن اللاعب مش موجود بالفعل
+    if (room.players.some(p => p.id === socket.id)) {
+      socket.emit('error', { message: 'You are already in this room' });
       return;
     }
     
