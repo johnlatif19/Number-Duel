@@ -250,13 +250,6 @@
             display: block;
         }
 
-        .form-group .hint {
-            color: rgba(255, 255, 255, 0.25);
-            font-size: 12px;
-            margin-top: 6px;
-            letter-spacing: 0.3px;
-        }
-
         /* ===== ROOM CODE INPUT SPECIAL ===== */
         .room-code-input-wrapper {
             position: relative;
@@ -509,20 +502,6 @@
                     <div class="error-text" id="nameError">الرجاء إدخال اسم صحيح</div>
                 </div>
 
-                <div class="form-group">
-                    <label>
-                        الرقم السري <span class="required">*</span>
-                    </label>
-                    <input 
-                        type="number" 
-                        id="secretNumber" 
-                        placeholder="أدخل رقمك السري (أي عدد صحيح)"
-                        required
-                    />
-                    <div class="error-text" id="numberError">الرجاء إدخال رقم صحيح</div>
-                    <div class="hint">💡 يمكنك اختيار أي عدد صحيح: موجب، سالب، أو صفر</div>
-                </div>
-
                 <button type="submit" class="btn btn-primary" id="joinBtn">
                     <span class="icon">🎮</span>
                     دخول الغرفة
@@ -548,10 +527,8 @@
         const form = document.getElementById('joinRoomForm');
         const roomCodeInput = document.getElementById('roomCodeInput');
         const playerNameInput = document.getElementById('playerName');
-        const secretNumberInput = document.getElementById('secretNumber');
         const roomError = document.getElementById('roomError');
         const nameError = document.getElementById('nameError');
-        const numberError = document.getElementById('numberError');
         const joinBtn = document.getElementById('joinBtn');
         const cancelBtn = document.getElementById('cancelBtn');
         const statusMessage = document.getElementById('statusMessage');
@@ -581,10 +558,6 @@
             return name && name.trim().length >= 2 && name.trim().length <= 20;
         }
 
-        function validateNumber(num) {
-            return num !== '' && num !== null && num !== undefined && !isNaN(parseInt(num));
-        }
-
         // ===== FORM SUBMIT =====
         form.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -592,15 +565,12 @@
             // Reset errors
             roomError.classList.remove('show');
             nameError.classList.remove('show');
-            numberError.classList.remove('show');
             roomCodeInput.classList.remove('error');
             playerNameInput.classList.remove('error');
-            secretNumberInput.classList.remove('error');
 
             // Validate
             const code = roomCodeInput.value.trim();
             const name = playerNameInput.value.trim();
-            const secret = secretNumberInput.value;
 
             let isValid = true;
 
@@ -616,24 +586,22 @@
                 isValid = false;
             }
 
-            if (!validateNumber(secret)) {
-                numberError.classList.add('show');
-                secretNumberInput.classList.add('error');
-                isValid = false;
-            }
-
             if (!isValid) return;
 
-            // Join room
+            // Join room - الرقم السري يتولد تلقائياً
             roomCode = code;
             joinBtn.disabled = true;
             joinBtn.innerHTML = '<span class="spinner"></span> جاري الدخول...';
             statusMessage.textContent = '⏳ جاري الانضمام إلى الغرفة...';
 
+            // توليد رقم سري عشوائي بين 1 و 100
+            const secretNumber = Math.floor(Math.random() * 100) + 1;
+            localStorage.setItem('secretNumber', secretNumber);
+
             socket.emit('join-room', {
                 roomCode: code,
                 playerName: name,
-                secretNumber: parseInt(secret)
+                secretNumber: secretNumber
             });
         });
 
@@ -701,6 +669,7 @@
                 socket.emit('leave-room', { roomCode });
                 localStorage.removeItem('roomCode');
                 localStorage.removeItem('playerName');
+                localStorage.removeItem('secretNumber');
                 window.location.href = '/';
             }
         });
@@ -735,11 +704,12 @@
         const savedRoom = localStorage.getItem('roomCode');
         if (savedRoom) {
             if (confirm('لديك غرفة مفتوحة حالياً. هل تريد العودة إليها؟')) {
-                window.location.href = `/game.html?room=${savedRoom}`;
+                window.location.href = `/game?room=${savedRoom}`;
             } else {
                 localStorage.removeItem('roomCode');
                 localStorage.removeItem('playerName');
                 localStorage.removeItem('gameData');
+                localStorage.removeItem('secretNumber');
             }
         }
 
