@@ -75,7 +75,32 @@ function generateRoomCode() {
   return code;
 }
 
-// Routes
+// ===== SERVE HTML PAGES =====
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+app.get('/dashboard', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+});
+
+app.get('/create-room', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'create-room.html'));
+});
+
+app.get('/enter-room', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'enter-room.html'));
+});
+
+app.get('/game', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'game.html'));
+});
+
+// API Routes
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
@@ -132,6 +157,23 @@ app.get('/api/dashboard/stats', authenticateToken, (req, res) => {
   });
 });
 
+// Check room exists
+app.get('/api/room/check/:code', (req, res) => {
+  const { code } = req.params;
+  const exists = roomCodes.has(code);
+  const room = rooms.get(code);
+  
+  if (exists && room) {
+    res.json({
+      exists: true,
+      players: room.players.length,
+      status: room.status
+    });
+  } else {
+    res.json({ exists: false });
+  }
+});
+
 // Get room info
 app.get('/api/room/:code', (req, res) => {
   const { code } = req.params;
@@ -171,9 +213,17 @@ app.post('/api/room/create', authenticateToken, (req, res) => {
   });
 });
 
-// Socket.IO logic
+// ===== SOCKET.IO =====
 io.on('connection', (socket) => {
-  console.log('New client connected:', socket.id);
+  console.log('🟢 New client connected:', socket.id);
+  
+  // Check room exists
+  socket.on('check-room', (roomCode, callback) => {
+    const exists = roomCodes.has(roomCode);
+    if (callback && typeof callback === 'function') {
+      callback(exists);
+    }
+  });
   
   // Create room from client
   socket.on('create-room', (data) => {
@@ -220,7 +270,7 @@ io.on('connection', (socket) => {
       player: { id: socket.id, name: playerName }
     });
     
-    console.log(`Room ${roomCode} created by ${playerName}`);
+    console.log(`✅ Room ${roomCode} created by ${playerName}`);
   });
   
   // Join room
@@ -277,7 +327,8 @@ io.on('connection', (socket) => {
           secretNumber: p.secretNumber
         })),
         currentTurn: room.currentTurn,
-        startTime: new Date().toISOString()
+        startTime: new Date().toISOString(),
+        attempts: 0
       };
       
       gameSessions.set(roomCode, gameData);
@@ -299,7 +350,7 @@ io.on('connection', (socket) => {
         });
       });
       
-      console.log(`Game started in room ${roomCode}`);
+      console.log(`🎮 Game started in room ${roomCode}`);
     }
     
     // Notify all players in room about update
@@ -360,13 +411,17 @@ io.on('connection', (socket) => {
       result = 'lower';
     }
     
+    // Update attempts
+    if (!game.attempts) game.attempts = 0;
+    game.attempts++;
+    
     // Send feedback to guesser
     socket.emit('guess-result', {
       result,
       guess: guessNum,
       isCorrect,
       difference: isCorrect ? 0 : difference,
-      attempts: game.attempts ? game.attempts + 1 : 1
+      attempts: game.attempts
     });
     
     // Send feedback to opponent
@@ -388,16 +443,12 @@ io.on('connection', (socket) => {
         winner: socket.id,
         winnerName: room.players.find(p => p.id === socket.id)?.name,
         secretNumber: secretNum,
-        attempts: game.attempts || 1
+        attempts: game.attempts
       });
       
       gameSessions.delete(roomCode);
-      console.log(`Game over in room ${roomCode} - Winner: ${room.players.find(p => p.id === socket.id)?.name}`);
+      console.log(`🏆 Game over in room ${roomCode}`);
     } else {
-      // Update attempts
-      if (!game.attempts) game.attempts = 0;
-      game.attempts++;
-      
       // Switch turn
       room.currentTurn = opponent.id;
       game.currentTurn = opponent.id;
@@ -499,7 +550,7 @@ io.on('connection', (socket) => {
       });
     });
     
-    console.log(`Game restarted in room ${roomCode}`);
+    console.log(`🔄 Game restarted in room ${roomCode}`);
   });
   
   // Leave room
@@ -516,7 +567,7 @@ io.on('connection', (socket) => {
         rooms.delete(roomCode);
         roomCodes.delete(roomCode);
         gameSessions.delete(roomCode);
-        console.log(`Room ${roomCode} deleted (empty)`);
+        console.log(`🗑️ Room ${roomCode} deleted (empty)`);
       } else {
         if (room.status === 'playing') {
           room.status = 'waiting';
@@ -532,7 +583,7 @@ io.on('connection', (socket) => {
           }))
         });
         
-        console.log(`Player left room ${roomCode}`);
+        console.log(`👋 Player left room ${roomCode}`);
       }
       
       socket.leave(roomCode);
@@ -541,7 +592,7 @@ io.on('connection', (socket) => {
   
   // Disconnect
   socket.on('disconnect', () => {
-    console.log('Client disconnected:', socket.id);
+    console.log('🔴 Client disconnected:', socket.id);
     
     // Clean up player from rooms
     const player = players.get(socket.id);
@@ -554,7 +605,7 @@ io.on('connection', (socket) => {
             rooms.delete(roomCode);
             roomCodes.delete(roomCode);
             gameSessions.delete(roomCode);
-            console.log(`Room ${roomCode} deleted (disconnect)`);
+            console.log(`🗑️ Room ${roomCode} deleted (disconnect)`);
           } else {
             if (room.status === 'playing') {
               room.status = 'waiting';
@@ -575,31 +626,6 @@ io.on('connection', (socket) => {
       players.delete(socket.id);
     }
   });
-});
-
-// Then add your routes
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-app.get('/login', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'login.html'));
-});
-
-app.get('/dashboard', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
-});
-
-app.get('/create-room', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'create-room.html'));
-});
-
-app.get('/enter-room', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'enter-room.html'));
-});
-
-app.get('/game', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'game.html'));
 });
 
 // Error handling
