@@ -62,11 +62,6 @@
             100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
         }
 
-        @keyframes shimmer {
-            0% { background-position: -200% center; }
-            100% { background-position: 200% center; }
-        }
-
         @keyframes typingDot {
             0%, 60%, 100% { transform: translateY(0); }
             30% { transform: translateY(-6px); }
@@ -83,7 +78,6 @@
             position: relative;
         }
 
-        /* ===== PARTICLES ===== */
         .particles-container {
             position: fixed;
             top: 0;
@@ -108,7 +102,6 @@
         .particle:nth-child(4) { width: 150px; height: 150px; top: 20%; right: 10%; animation-duration: 22s; animation-delay: 1s; }
         .particle:nth-child(5) { width: 250px; height: 250px; bottom: 20%; left: 10%; animation-duration: 28s; animation-delay: 3s; }
 
-        /* ===== ORBITAL RINGS ===== */
         .orbital-ring {
             position: fixed;
             border: 1px solid rgba(255, 255, 255, 0.03);
@@ -121,7 +114,6 @@
         .orbital-ring:nth-child(6) { width: 600px; height: 600px; top: 50%; left: 50%; transform: translate(-50%, -50%); animation-duration: 80s; }
         .orbital-ring:nth-child(7) { width: 800px; height: 800px; top: 50%; left: 50%; transform: translate(-50%, -50%); animation-duration: 100s; animation-direction: reverse; }
 
-        /* ===== CONTAINER ===== */
         .container {
             position: relative;
             z-index: 1;
@@ -134,7 +126,6 @@
             min-height: calc(100vh - 40px);
         }
 
-        /* ===== GLASS CARD ===== */
         .glass-card {
             background: rgba(255, 255, 255, 0.04);
             backdrop-filter: blur(30px);
@@ -150,14 +141,12 @@
             border-color: rgba(255, 255, 255, 0.12);
         }
 
-        /* ===== MAIN GAME AREA ===== */
         .game-area {
             display: flex;
             flex-direction: column;
             gap: 20px;
         }
 
-        /* ===== HEADER ===== */
         .game-header {
             display: flex;
             justify-content: space-between;
@@ -246,7 +235,6 @@
             color: #4caf50;
         }
 
-        /* ===== PLAYERS ===== */
         .players-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -321,21 +309,6 @@
             animation: pulse 1.5s infinite;
         }
 
-        .turn-indicator {
-            position: absolute;
-            top: -8px;
-            right: 16px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: #fff;
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            padding: 3px 12px;
-            border-radius: 30px;
-            letter-spacing: 0.5px;
-        }
-
-        /* ===== GUESS AREA ===== */
         .guess-area {
             margin-top: 10px;
             padding-top: 20px;
@@ -416,7 +389,6 @@
             transform: none !important;
         }
 
-        /* ===== FEEDBACK ===== */
         .feedback-area {
             margin-top: 16px;
             padding: 16px 20px;
@@ -456,7 +428,6 @@
             font-weight: 400;
         }
 
-        /* ===== CHAT SIDEBAR ===== */
         .chat-sidebar {
             display: flex;
             flex-direction: column;
@@ -542,10 +513,6 @@
             padding-left: 4px;
         }
 
-        .chat-message .msg-text .emoji {
-            font-size: 18px;
-        }
-
         .chat-typing {
             color: rgba(255, 255, 255, 0.15);
             font-size: 12px;
@@ -610,7 +577,6 @@
             transform: scale(1.05);
         }
 
-        /* ===== OVERLAY ===== */
         .overlay {
             position: fixed;
             top: 0;
@@ -714,7 +680,6 @@
             color: rgba(255, 255, 255, 0.7);
         }
 
-        /* ===== CONFETTI ===== */
         .confetti-container {
             position: fixed;
             top: 0;
@@ -733,16 +698,13 @@
             animation: confettiFall linear forwards;
         }
 
-        /* ===== RESPONSIVE ===== */
         @media (max-width: 900px) {
             .container {
                 grid-template-columns: 1fr;
             }
-
             .chat-sidebar {
                 max-height: 350px;
             }
-
             .chat-messages {
                 max-height: 200px;
                 min-height: 150px;
@@ -753,42 +715,33 @@
             .players-grid {
                 grid-template-columns: 1fr;
             }
-
             .game-header {
                 flex-direction: column;
                 align-items: stretch;
                 gap: 8px;
             }
-
             .game-header .actions {
                 justify-content: flex-start;
             }
-
             .guess-input-group {
                 flex-direction: column;
             }
-
             .guess-input-group .guess-btn {
                 width: 100%;
             }
-
             .feedback-area .feedback-text {
                 font-size: 22px;
             }
-
             .glass-card {
                 padding: 18px;
                 border-radius: 20px;
             }
-
             .overlay-content {
                 padding: 30px 20px;
             }
-
             .overlay-content .emoji {
                 font-size: 48px;
             }
-
             .overlay-content h2 {
                 font-size: 22px;
             }
@@ -799,35 +752,28 @@
                 padding: 14px;
                 border-radius: 16px;
             }
-
             .player-card {
                 padding: 14px;
             }
-
             .feedback-area .feedback-text {
                 font-size: 18px;
             }
         }
 
-        /* ===== SCROLLBAR ===== */
         ::-webkit-scrollbar {
             width: 6px;
         }
-
         ::-webkit-scrollbar-track {
             background: rgba(255, 255, 255, 0.02);
         }
-
         ::-webkit-scrollbar-thumb {
             background: rgba(255, 255, 255, 0.1);
             border-radius: 10px;
         }
-
         ::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.2);
         }
 
-        /* ===== LOADING SCREEN ===== */
         .loading-screen {
             position: fixed;
             top: 0;
@@ -863,10 +809,9 @@
     <!-- ===== LOADING SCREEN ===== -->
     <div class="loading-screen" id="loadingScreen">
         <div class="spinner"></div>
-        <div class="text">⏳ جاري التحقق من الغرفة...</div>
+        <div class="text">⏳ جاري الدخول إلى الغرفة...</div>
     </div>
 
-    <!-- ===== PARTICLES ===== -->
     <div class="particles-container">
         <div class="particle"></div>
         <div class="particle"></div>
@@ -878,10 +823,8 @@
     <div class="orbital-ring"></div>
     <div class="orbital-ring"></div>
 
-    <!-- ===== CONFETTI ===== -->
     <div class="confetti-container" id="confettiContainer"></div>
 
-    <!-- ===== GAME OVER OVERLAY ===== -->
     <div class="overlay" id="gameOverOverlay">
         <div class="overlay-content">
             <div class="emoji" id="resultEmoji">🏆</div>
@@ -897,17 +840,12 @@
         </div>
     </div>
 
-    <!-- ===== MAIN CONTENT ===== -->
     <div class="container" id="mainContent" style="display:none;">
-        <!-- ===== GAME AREA ===== -->
         <div class="game-area">
             <div class="glass-card">
-                <!-- Header -->
                 <div class="game-header">
                     <div class="left">
-                        <div class="room-code">
-                            🏠 <span id="roomCodeDisplay">------</span>
-                        </div>
+                        <div class="room-code">🏠 <span id="roomCodeDisplay">------</span></div>
                         <div class="status-badge waiting" id="statusBadge">⏳ في انتظار...</div>
                     </div>
                     <div class="actions">
@@ -916,7 +854,6 @@
                     </div>
                 </div>
 
-                <!-- Players -->
                 <div class="players-grid">
                     <div class="player-card" id="player1Card">
                         <div class="player-name">
@@ -928,7 +865,6 @@
                             <span id="player1Status">متصل</span>
                         </div>
                     </div>
-
                     <div class="player-card" id="player2Card">
                         <div class="player-name">
                             <span id="player2Name">في انتظار...</span>
@@ -941,61 +877,40 @@
                     </div>
                 </div>
 
-                <!-- Guess Area -->
                 <div class="guess-area">
                     <div class="guess-label">
                         <span>🎯 تخمينك</span>
                         <span class="hint-text" id="turnHint">دورك الآن</span>
                     </div>
                     <div class="guess-input-group">
-                        <input 
-                            type="number" 
-                            id="guessInput" 
-                            placeholder="أدخل رقمك..."
-                            disabled
-                        />
-                        <button class="guess-btn" id="guessBtn" disabled>
-                            🚀 تخمين
-                        </button>
+                        <input type="number" id="guessInput" placeholder="أدخل رقمك..." disabled />
+                        <button class="guess-btn" id="guessBtn" disabled>🚀 تخمين</button>
                     </div>
                 </div>
 
-                <!-- Feedback -->
                 <div class="feedback-area">
-                    <div class="feedback-text waiting" id="feedbackText">
-                        ⏳ في انتظار بدء المباراة...
-                    </div>
+                    <div class="feedback-text waiting" id="feedbackText">⏳ في انتظار بدء المباراة...</div>
                 </div>
             </div>
         </div>
 
-        <!-- ===== CHAT SIDEBAR ===== -->
         <div class="glass-card chat-sidebar">
             <div class="chat-header">
                 <h3>💬 الدردشة <span class="badge" id="chatBadge">0</span></h3>
             </div>
-
             <div class="chat-messages" id="chatMessages">
                 <div class="chat-message" style="text-align:center; color:rgba(255,255,255,0.1); font-size:13px; padding:20px 0;">
                     💬 ابدأ المحادثة...
                 </div>
             </div>
-
             <div class="chat-typing" id="typingIndicator"></div>
-
             <div class="chat-input-group">
-                <input 
-                    type="text" 
-                    id="chatInput" 
-                    placeholder="اكتب رسالة..."
-                    maxlength="200"
-                />
+                <input type="text" id="chatInput" placeholder="اكتب رسالة..." maxlength="200" />
                 <button class="send-btn" id="chatSendBtn">📤</button>
             </div>
         </div>
     </div>
 
-    <!-- ===== SCRIPTS ===== -->
     <script src="/socket.io/socket.io.js"></script>
     <script>
         // ===== DOM ELEMENTS =====
@@ -1046,6 +961,7 @@
         let typingTimeout = null;
         let chatCount = 0;
         let isJoining = false;
+        let joinAttempted = false;
 
         // ===== INIT =====
         if (!roomCode) {
@@ -1055,50 +971,23 @@
 
         roomCodeDisplay.textContent = roomCode;
 
-        // ===== CHECK ROOM EXISTS =====
-        async function checkRoom() {
-            try {
-                const response = await fetch(`/api/room/check/${roomCode}`);
-                const data = await response.json();
-                
-                if (!data.exists) {
-                    alert('❌ الغرفة غير موجودة أو انتهت!');
-                    window.location.href = '/';
-                    return false;
-                }
-                
-                return true;
-            } catch (error) {
-                console.error('Error checking room:', error);
-                alert('❌ حدث خطأ في التحقق من الغرفة');
-                window.location.href = '/';
-                return false;
-            }
-        }
-
-        // ===== JOIN ROOM =====
-        async function joinRoom() {
-            if (isJoining) return;
+        // ===== JOIN ROOM - التعديل الرئيسي =====
+        function joinRoom() {
+            if (isJoining || joinAttempted) return;
             isJoining = true;
-
-            const roomExists = await checkRoom();
-            if (!roomExists) {
-                isJoining = false;
-                return;
-            }
+            joinAttempted = true;
 
             // Get player data from localStorage
             playerName = localStorage.getItem('playerName') || 'لاعب';
             secretNumber = parseInt(localStorage.getItem('secretNumber')) || 0;
 
             if (!playerName || playerName === 'لاعب') {
-                // If no name stored, prompt for it
-                const name = prompt('أدخل اسمك:');
+                const name = prompt('👤 أدخل اسمك:');
                 if (name && name.trim().length >= 2) {
                     playerName = name.trim();
                     localStorage.setItem('playerName', playerName);
                 } else {
-                    alert('الرجاء إدخال اسم صحيح');
+                    alert('❌ الرجاء إدخال اسم صحيح');
                     window.location.href = '/';
                     isJoining = false;
                     return;
@@ -1106,40 +995,42 @@
             }
 
             if (!secretNumber || secretNumber === 0) {
-                // If no secret number stored, prompt for it
-                const num = prompt('أدخل رقمك السري (أي عدد صحيح):');
+                const num = prompt('🔢 أدخل رقمك السري (أي عدد صحيح):');
                 if (num !== null && num !== '' && !isNaN(parseInt(num))) {
                     secretNumber = parseInt(num);
                     localStorage.setItem('secretNumber', secretNumber);
                 } else {
-                    alert('الرجاء إدخال رقم صحيح');
+                    alert('❌ الرجاء إدخال رقم صحيح');
                     window.location.href = '/';
                     isJoining = false;
                     return;
                 }
             }
 
-            // Join the room
+            // Join the room via Socket - NO API CALL
+            console.log('📡 Joining room:', roomCode);
             socket.emit('join-room', {
                 roomCode: roomCode,
                 playerName: playerName,
                 secretNumber: secretNumber
             });
 
-            // Hide loading screen after a moment
+            // Hide loading screen after a moment (will be hidden earlier if join succeeds)
             setTimeout(() => {
                 loadingScreen.style.display = 'none';
                 mainContent.style.display = 'grid';
-            }, 500);
+            }, 2000);
 
             isJoining = false;
         }
 
         // ===== SOCKET EVENTS =====
 
-        // Joined room
+        // Joined room successfully
         socket.on('joined-room', (data) => {
             console.log('✅ Joined room:', data.roomCode);
+            loadingScreen.style.display = 'none';
+            mainContent.style.display = 'grid';
             statusBadge.textContent = '👥 في انتظار الخصم';
             statusBadge.className = 'status-badge waiting';
             feedbackText.textContent = '⏳ في انتظار انضمام الخصم...';
@@ -1154,7 +1045,6 @@
             feedbackText.textContent = '🎯 ابدأ التخمين!';
             feedbackText.className = 'feedback-text';
 
-            // Update players
             data.players.forEach((p, index) => {
                 if (index === 0) {
                     player1Name.textContent = p.name;
@@ -1192,7 +1082,6 @@
                 feedbackText.textContent = `${emoji} ${text}`;
                 feedbackText.className = `feedback-text ${data.result}`;
                 
-                // Re-enable guess after short delay
                 setTimeout(() => {
                     if (!gameOver && isMyTurn && gameActive) {
                         guessInput.disabled = false;
@@ -1291,17 +1180,18 @@
             }
         });
 
-        // Error
+        // ===== ERROR HANDLER - التعديل الرئيسي =====
         socket.on('error', (data) => {
-            console.error('Error:', data.message);
-            feedbackText.textContent = `❌ ${data.message}`;
-            feedbackText.className = 'feedback-text';
+            console.error('❌ Error:', data.message);
             
             if (data.message.includes('Room not found') || data.message.includes('not found')) {
-                setTimeout(() => {
-                    window.location.href = '/';
-                }, 3000);
+                alert('❌ الغرفة غير موجودة أو انتهت!');
+                window.location.href = '/';
+                return;
             }
+            
+            feedbackText.textContent = `❌ ${data.message}`;
+            feedbackText.className = 'feedback-text';
         });
 
         // ===== FUNCTIONS =====
@@ -1387,7 +1277,6 @@
                 <div class="msg-text">${message}</div>
             `;
             
-            // Remove empty state
             const emptyMsg = chatMessages.querySelector('.chat-message[style]');
             if (emptyMsg) emptyMsg.remove();
             
@@ -1410,7 +1299,6 @@
             chatInput.value = '';
             chatInput.focus();
             
-            // Clear typing
             if (isTyping) {
                 isTyping = false;
                 socket.emit('typing', { roomCode, isTyping: false });
@@ -1419,7 +1307,6 @@
 
         // ===== EVENT LISTENERS =====
 
-        // Guess
         guessBtn.addEventListener('click', () => {
             const guess = guessInput.value.trim();
             if (!guess || !roomCode || !gameActive || gameOver) return;
@@ -1450,7 +1337,6 @@
             }
         });
 
-        // Chat
         chatSendBtn.addEventListener('click', sendChatMessage);
         chatInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
@@ -1482,7 +1368,6 @@
             }
         });
 
-        // Restart
         restartBtn.addEventListener('click', () => {
             if (roomCode) {
                 socket.emit('restart-game', { roomCode });
@@ -1497,7 +1382,6 @@
             }
         });
 
-        // Leave
         function leaveRoom() {
             if (confirm('هل أنت متأكد من مغادرة الغرفة؟')) {
                 socket.emit('leave-room', { roomCode });
@@ -1510,7 +1394,6 @@
         leaveGameBtn.addEventListener('click', leaveRoom);
         leaveGameBtnHeader.addEventListener('click', leaveRoom);
 
-        // ===== KEYBOARD SHORTCUTS =====
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 if (gameOverOverlay.classList.contains('show')) {
@@ -1522,10 +1405,11 @@
         });
 
         // ===== START =====
-        // Join the room
-        joinRoom();
+        // Join the room directly - NO API call
+        setTimeout(() => {
+            joinRoom();
+        }, 500);
 
-        // ===== CONSOLE =====
         console.log('%c🎯 Number Duel - Game', 'font-size: 20px; font-weight: bold; color: #667eea;');
         console.log(`%c🏠 Room: ${roomCode}`, 'font-size: 14px; color: #888;');
         console.log(`%c👤 Player: ${playerName}`, 'font-size: 14px; color: #888;');
