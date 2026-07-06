@@ -953,7 +953,8 @@
         const urlParams = new URLSearchParams(window.location.search);
         const roomCode = urlParams.get('room');
         let playerName = localStorage.getItem('playerName') || 'لاعب';
-        let secretNumber = parseInt(localStorage.getItem('secretNumber')) || 0;
+        // رقم سري عشوائي من 1 لـ 100
+        let secretNumber = parseInt(localStorage.getItem('secretNumber')) || Math.floor(Math.random() * 100) + 1;
         let isMyTurn = false;
         let gameActive = false;
         let gameOver = false;
@@ -967,6 +968,7 @@
         if (!roomCode) {
             alert('❌ رابط غير صحيح. الرجاء الدخول عبر رابط الغرفة.');
             window.location.href = '/enter-room';
+            return;
         }
 
         roomCodeDisplay.textContent = roomCode;
@@ -983,15 +985,14 @@
             joinRoom();
         });
 
-        // ===== JOIN ROOM =====
+        // ===== JOIN ROOM (معدل - من غير طلب رقم سري) =====
         function joinRoom() {
             if (isJoining || joinAttempted) return;
             isJoining = true;
             joinAttempted = true;
 
-            // Get player data from localStorage
+            // Get player name only
             playerName = localStorage.getItem('playerName') || 'لاعب';
-            secretNumber = parseInt(localStorage.getItem('secretNumber')) || 0;
 
             if (!playerName || playerName === 'لاعب') {
                 const name = prompt('👤 أدخل اسمك:');
@@ -1006,21 +1007,13 @@
                 }
             }
 
-            if (!secretNumber || secretNumber === 0) {
-                const num = prompt('🔢 أدخل رقمك السري (أي عدد صحيح):');
-                if (num !== null && num !== '' && !isNaN(parseInt(num))) {
-                    secretNumber = parseInt(num);
-                    localStorage.setItem('secretNumber', secretNumber);
-                } else {
-                    alert('❌ الرجاء إدخال رقم صحيح');
-                    window.location.href = '/enter-room';
-                    isJoining = false;
-                    return;
-                }
-            }
+            // الرقم السري يتولد تلقائياً (عشوائي بين 1 و 100)
+            secretNumber = Math.floor(Math.random() * 100) + 1;
+            localStorage.setItem('secretNumber', secretNumber);
 
-            // Join the room via Socket
+            console.log('🎯 Secret number:', secretNumber);
             console.log('📡 Joining room:', roomCode);
+            
             socket.emit('join-room', {
                 roomCode: roomCode,
                 playerName: playerName,
@@ -1131,6 +1124,11 @@
             statusBadge.className = 'status-badge playing';
             updateTurn(data.currentTurn);
             guessInput.value = '';
+            
+            // جدد الرقم السري لكل جولة جديدة
+            secretNumber = Math.floor(Math.random() * 100) + 1;
+            localStorage.setItem('secretNumber', secretNumber);
+            console.log('🎯 New secret number:', secretNumber);
         });
 
         // Players update
@@ -1405,6 +1403,7 @@
                 socket.emit('leave-room', { roomCode });
                 localStorage.removeItem('roomCode');
                 localStorage.removeItem('gameData');
+                localStorage.removeItem('secretNumber');
                 window.location.href = '/';
             }
         }
@@ -1426,6 +1425,7 @@
         console.log('%c🎯 Number Duel - Game', 'font-size: 20px; font-weight: bold; color: #667eea;');
         console.log(`%c🏠 Room: ${roomCode}`, 'font-size: 14px; color: #888;');
         console.log(`%c👤 Player: ${playerName}`, 'font-size: 14px; color: #888;');
+        console.log(`%c🔢 Secret Number: ${secretNumber}`, 'font-size: 14px; color: #888;');
         console.log('%c🎮 استمتع باللعب!', 'font-size: 14px; color: #4caf50;');
     </script>
 </body>
