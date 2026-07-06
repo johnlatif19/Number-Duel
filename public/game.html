@@ -953,7 +953,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const roomCode = urlParams.get('room');
         let playerName = localStorage.getItem('playerName') || 'لاعب';
-        let secretNumber = localStorage.getItem('secretNumber') || 0;
+        let secretNumber = parseInt(localStorage.getItem('secretNumber')) || 0;
         let isMyTurn = false;
         let gameActive = false;
         let gameOver = false;
@@ -963,15 +963,27 @@
         let isJoining = false;
         let joinAttempted = false;
 
-        // ===== INIT =====
+        // ===== التحقق من صحة الدخول =====
         if (!roomCode) {
-            window.location.href = '/';
-            return;
+            alert('❌ رابط غير صحيح. الرجاء الدخول عبر رابط الغرفة.');
+            window.location.href = '/enter-room';
         }
 
         roomCodeDisplay.textContent = roomCode;
 
-        // ===== JOIN ROOM - التعديل الرئيسي =====
+        // ===== التحقق من وجود الغرفة قبل الدخول =====
+        socket.emit('check-room', roomCode, (exists) => {
+            if (!exists) {
+                alert('❌ الغرفة غير موجودة أو انتهت.');
+                window.location.href = '/enter-room';
+                return;
+            }
+            
+            // استمر في عملية الدخول
+            joinRoom();
+        });
+
+        // ===== JOIN ROOM =====
         function joinRoom() {
             if (isJoining || joinAttempted) return;
             isJoining = true;
@@ -988,7 +1000,7 @@
                     localStorage.setItem('playerName', playerName);
                 } else {
                     alert('❌ الرجاء إدخال اسم صحيح');
-                    window.location.href = '/';
+                    window.location.href = '/enter-room';
                     isJoining = false;
                     return;
                 }
@@ -1001,13 +1013,13 @@
                     localStorage.setItem('secretNumber', secretNumber);
                 } else {
                     alert('❌ الرجاء إدخال رقم صحيح');
-                    window.location.href = '/';
+                    window.location.href = '/enter-room';
                     isJoining = false;
                     return;
                 }
             }
 
-            // Join the room via Socket - NO API CALL
+            // Join the room via Socket
             console.log('📡 Joining room:', roomCode);
             socket.emit('join-room', {
                 roomCode: roomCode,
@@ -1015,7 +1027,7 @@
                 secretNumber: secretNumber
             });
 
-            // Hide loading screen after a moment (will be hidden earlier if join succeeds)
+            // Hide loading screen after a moment
             setTimeout(() => {
                 loadingScreen.style.display = 'none';
                 mainContent.style.display = 'grid';
@@ -1180,12 +1192,18 @@
             }
         });
 
-        // ===== ERROR HANDLER - التعديل الرئيسي =====
+        // ===== ERROR HANDLER =====
         socket.on('error', (data) => {
             console.error('❌ Error:', data.message);
             
             if (data.message.includes('Room not found') || data.message.includes('not found')) {
                 alert('❌ الغرفة غير موجودة أو انتهت!');
+                window.location.href = '/enter-room';
+                return;
+            }
+            
+            if (data.message.includes('full')) {
+                alert('❌ الغرفة ممتلئة!');
                 window.location.href = '/';
                 return;
             }
@@ -1404,12 +1422,7 @@
             }
         });
 
-        // ===== START =====
-        // Join the room directly - NO API call
-        setTimeout(() => {
-            joinRoom();
-        }, 500);
-
+        // ===== CONSOLE =====
         console.log('%c🎯 Number Duel - Game', 'font-size: 20px; font-weight: bold; color: #667eea;');
         console.log(`%c🏠 Room: ${roomCode}`, 'font-size: 14px; color: #888;');
         console.log(`%c👤 Player: ${playerName}`, 'font-size: 14px; color: #888;');
