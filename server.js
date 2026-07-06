@@ -4,22 +4,21 @@ const http = require('http');
 const socketIO = require('socket.io');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
-const bcrypt = require('bcryptjs');
 const path = require('path');
 
 // Initialize Firebase Admin (optional)
 let firebaseAdmin = null;
 try {
-  if (process.env.FIREBASE_CONFIG) {
+  if (process.env.FIREBASE_CONFIG && process.env.FIREBASE_CONFIG !== '') {
     const firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG);
     firebaseAdmin = require('firebase-admin');
     firebaseAdmin.initializeApp({
       credential: firebaseAdmin.credential.cert(firebaseConfig)
     });
-    console.log('Firebase initialized successfully');
+    console.log('✅ Firebase initialized');
   }
 } catch (error) {
-  console.log('Firebase not configured or error:', error.message);
+  console.log('ℹ️ Firebase not configured:', error.message);
 }
 
 const app = express();
@@ -28,7 +27,8 @@ const io = socketIO(server, {
   cors: {
     origin: "*",
     methods: ["GET", "POST"]
-  }
+  },
+  transports: ['websocket', 'polling']
 });
 
 // Middleware
@@ -100,12 +100,11 @@ app.get('/game', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'game.html'));
 });
 
-// API Routes
+// ===== API ROUTES =====
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-// Login route
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
   
@@ -130,7 +129,6 @@ app.post('/api/login', (req, res) => {
   }
 });
 
-// Verify token
 app.get('/api/verify', authenticateToken, (req, res) => {
   res.json({ 
     valid: true, 
@@ -138,7 +136,6 @@ app.get('/api/verify', authenticateToken, (req, res) => {
   });
 });
 
-// Dashboard stats
 app.get('/api/dashboard/stats', authenticateToken, (req, res) => {
   const roomStats = Array.from(rooms.values()).map(room => ({
     code: room.code,
@@ -157,7 +154,7 @@ app.get('/api/dashboard/stats', authenticateToken, (req, res) => {
   });
 });
 
-// Check room exists
+// ===== IMPORTANT: Check room exists - التعديل الأساسي =====
 app.get('/api/room/check/:code', (req, res) => {
   const { code } = req.params;
   const exists = roomCodes.has(code);
@@ -166,15 +163,15 @@ app.get('/api/room/check/:code', (req, res) => {
   if (exists && room) {
     res.json({
       exists: true,
-      players: room.players.length,
-      status: room.status
+      players: room.players ? room.players.length : 0,
+      status: room.status || 'waiting',
+      playerNames: room.players ? room.players.map(p => p.name) : []
     });
   } else {
     res.json({ exists: false });
   }
 });
 
-// Get room info
 app.get('/api/room/:code', (req, res) => {
   const { code } = req.params;
   const room = rooms.get(code);
@@ -191,7 +188,6 @@ app.get('/api/room/:code', (req, res) => {
   });
 });
 
-// Create room API (for admin)
 app.post('/api/room/create', authenticateToken, (req, res) => {
   const roomCode = generateRoomCode();
   
@@ -217,7 +213,7 @@ app.post('/api/room/create', authenticateToken, (req, res) => {
 io.on('connection', (socket) => {
   console.log('🟢 New client connected:', socket.id);
   
-  // Check room exists
+  // Check room exists via socket
   socket.on('check-room', (roomCode, callback) => {
     const exists = roomCodes.has(roomCode);
     if (callback && typeof callback === 'function') {
@@ -253,7 +249,6 @@ io.on('connection', (socket) => {
     rooms.set(roomCode, room);
     roomCodes.add(roomCode);
     
-    // Add player to room
     const player = {
       id: socket.id,
       name: playerName.trim(),
@@ -341,7 +336,6 @@ io.on('connection', (socket) => {
         currentTurn: room.currentTurn
       });
       
-      // Send turn info to both players
       room.players.forEach(p => {
         const opponent = room.players.find(op => op.id !== p.id);
         io.to(p.id).emit('your-turn', {
@@ -353,7 +347,6 @@ io.on('connection', (socket) => {
       console.log(`🎮 Game started in room ${roomCode}`);
     }
     
-    // Notify all players in room about update
     io.to(roomCode).emit('players-update', {
       players: room.players.map(p => ({ 
         id: p.id, 
@@ -411,11 +404,9 @@ io.on('connection', (socket) => {
       result = 'lower';
     }
     
-    // Update attempts
     if (!game.attempts) game.attempts = 0;
     game.attempts++;
     
-    // Send feedback to guesser
     socket.emit('guess-result', {
       result,
       guess: guessNum,
@@ -424,7 +415,6 @@ io.on('connection', (socket) => {
       attempts: game.attempts
     });
     
-    // Send feedback to opponent
     const opponentSocket = io.sockets.sockets.get(opponent.id);
     if (opponentSocket) {
       opponentSocket.emit('opponent-guessed', {
@@ -435,7 +425,6 @@ io.on('connection', (socket) => {
     }
     
     if (isCorrect) {
-      // Game over - player won
       room.status = 'finished';
       room.winner = socket.id;
       
@@ -449,7 +438,6 @@ io.on('connection', (socket) => {
       gameSessions.delete(roomCode);
       console.log(`🏆 Game over in room ${roomCode}`);
     } else {
-      // Switch turn
       room.currentTurn = opponent.id;
       game.currentTurn = opponent.id;
       
@@ -515,12 +503,10 @@ io.on('connection', (socket) => {
       return;
     }
     
-    // Reset game state
     room.status = 'playing';
     room.currentTurn = room.players[0].id;
     room.winner = null;
     
-    // Create new game session with same players
     const newGame = {
       players: room.players.map(p => ({
         id: p.id,
@@ -594,7 +580,6 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('🔴 Client disconnected:', socket.id);
     
-    // Clean up player from rooms
     const player = players.get(socket.id);
     if (player) {
       for (const [roomCode, room] of rooms) {
@@ -641,7 +626,5 @@ server.listen(PORT, () => {
   console.log(`📱 Visit http://localhost:${PORT} to play!`);
   console.log(`🔐 Admin login at http://localhost:${PORT}/login`);
   console.log(`📊 Dashboard at http://localhost:${PORT}/dashboard`);
-  console.log(`🏠 Create room at http://localhost:${PORT}/create-room`);
-  console.log(`🚪 Enter room at http://localhost:${PORT}/enter-room`);
   console.log(`👥 Active rooms: ${rooms.size}`);
 });
