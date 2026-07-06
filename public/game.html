@@ -826,9 +826,46 @@
         ::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.2);
         }
+
+        /* ===== LOADING SCREEN ===== */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .loading-screen .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255,255,255,0.05);
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: loadingSpin 0.8s linear infinite;
+        }
+
+        .loading-screen .text {
+            color: rgba(255,255,255,0.3);
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
+    <!-- ===== LOADING SCREEN ===== -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="spinner"></div>
+        <div class="text">⏳ جاري التحقق من الغرفة...</div>
+    </div>
+
     <!-- ===== PARTICLES ===== -->
     <div class="particles-container">
         <div class="particle"></div>
@@ -861,7 +898,7 @@
     </div>
 
     <!-- ===== MAIN CONTENT ===== -->
-    <div class="container">
+    <div class="container" id="mainContent" style="display:none;">
         <!-- ===== GAME AREA ===== -->
         <div class="game-area">
             <div class="glass-card">
@@ -963,6 +1000,8 @@
     <script>
         // ===== DOM ELEMENTS =====
         const socket = io();
+        const loadingScreen = document.getElementById('loadingScreen');
+        const mainContent = document.getElementById('mainContent');
 
         const roomCodeDisplay = document.getElementById('roomCodeDisplay');
         const statusBadge = document.getElementById('statusBadge');
@@ -999,12 +1038,14 @@
         const urlParams = new URLSearchParams(window.location.search);
         const roomCode = urlParams.get('room');
         let playerName = localStorage.getItem('playerName') || 'لاعب';
+        let secretNumber = localStorage.getItem('secretNumber') || 0;
         let isMyTurn = false;
         let gameActive = false;
         let gameOver = false;
         let isTyping = false;
         let typingTimeout = null;
         let chatCount = 0;
+        let isJoining = false;
 
         // ===== INIT =====
         if (!roomCode) {
@@ -1014,13 +1055,95 @@
 
         roomCodeDisplay.textContent = roomCode;
 
+        // ===== CHECK ROOM EXISTS =====
+        async function checkRoom() {
+            try {
+                const response = await fetch(`/api/room/check/${roomCode}`);
+                const data = await response.json();
+                
+                if (!data.exists) {
+                    alert('❌ الغرفة غير موجودة أو انتهت!');
+                    window.location.href = '/';
+                    return false;
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('Error checking room:', error);
+                alert('❌ حدث خطأ في التحقق من الغرفة');
+                window.location.href = '/';
+                return false;
+            }
+        }
+
+        // ===== JOIN ROOM =====
+        async function joinRoom() {
+            if (isJoining) return;
+            isJoining = true;
+
+            const roomExists = await checkRoom();
+            if (!roomExists) {
+                isJoining = false;
+                return;
+            }
+
+            // Get player data from localStorage
+            playerName = localStorage.getItem('playerName') || 'لاعب';
+            secretNumber = parseInt(localStorage.getItem('secretNumber')) || 0;
+
+            if (!playerName || playerName === 'لاعب') {
+                // If no name stored, prompt for it
+                const name = prompt('أدخل اسمك:');
+                if (name && name.trim().length >= 2) {
+                    playerName = name.trim();
+                    localStorage.setItem('playerName', playerName);
+                } else {
+                    alert('الرجاء إدخال اسم صحيح');
+                    window.location.href = '/';
+                    isJoining = false;
+                    return;
+                }
+            }
+
+            if (!secretNumber || secretNumber === 0) {
+                // If no secret number stored, prompt for it
+                const num = prompt('أدخل رقمك السري (أي عدد صحيح):');
+                if (num !== null && num !== '' && !isNaN(parseInt(num))) {
+                    secretNumber = parseInt(num);
+                    localStorage.setItem('secretNumber', secretNumber);
+                } else {
+                    alert('الرجاء إدخال رقم صحيح');
+                    window.location.href = '/';
+                    isJoining = false;
+                    return;
+                }
+            }
+
+            // Join the room
+            socket.emit('join-room', {
+                roomCode: roomCode,
+                playerName: playerName,
+                secretNumber: secretNumber
+            });
+
+            // Hide loading screen after a moment
+            setTimeout(() => {
+                loadingScreen.style.display = 'none';
+                mainContent.style.display = 'grid';
+            }, 500);
+
+            isJoining = false;
+        }
+
         // ===== SOCKET EVENTS =====
 
-        // Join room
-        socket.emit('join-room', {
-            roomCode: roomCode,
-            playerName: playerName,
-            secretNumber: parseInt(localStorage.getItem('secretNumber')) || 0
+        // Joined room
+        socket.on('joined-room', (data) => {
+            console.log('✅ Joined room:', data.roomCode);
+            statusBadge.textContent = '👥 في انتظار الخصم';
+            statusBadge.className = 'status-badge waiting';
+            feedbackText.textContent = '⏳ في انتظار انضمام الخصم...';
+            feedbackText.className = 'feedback-text waiting';
         });
 
         // Game start
@@ -1173,6 +1296,12 @@
             console.error('Error:', data.message);
             feedbackText.textContent = `❌ ${data.message}`;
             feedbackText.className = 'feedback-text';
+            
+            if (data.message.includes('Room not found') || data.message.includes('not found')) {
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 3000);
+            }
         });
 
         // ===== FUNCTIONS =====
@@ -1373,7 +1502,6 @@
             if (confirm('هل أنت متأكد من مغادرة الغرفة؟')) {
                 socket.emit('leave-room', { roomCode });
                 localStorage.removeItem('roomCode');
-                localStorage.removeItem('playerName');
                 localStorage.removeItem('gameData');
                 window.location.href = '/';
             }
@@ -1392,6 +1520,10 @@
                 }
             }
         });
+
+        // ===== START =====
+        // Join the room
+        joinRoom();
 
         // ===== CONSOLE =====
         console.log('%c🎯 Number Duel - Game', 'font-size: 20px; font-weight: bold; color: #667eea;');
